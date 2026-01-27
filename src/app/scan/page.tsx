@@ -28,9 +28,37 @@ export default function ScanPage() {
         };
     }, [status]);
 
-    function onScanSuccess(decodedText: string) {
+    async function onScanSuccess(decodedText: string) {
         setScanResult(decodedText);
-        setStatus("success");
+        setStatus("scanning"); // Show processing
+
+        const studentId = sessionStorage.getItem("student_id");
+
+        try {
+            const response = await fetch("/api/attendance", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    studentId: studentId,
+                    scannedId: decodedText,
+                    type: "등교" // Or dynamically determine based on time
+                }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                setStatus("success");
+            } else {
+                alert(result.message || "스캔 처리 중 오류가 발생했습니다.");
+                setStatus("idle");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("네트워크 통신 오류가 발생했습니다.");
+            setStatus("idle");
+        }
+
         if (scannerRef.current) {
             scannerRef.current.clear();
         }

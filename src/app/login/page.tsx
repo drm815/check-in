@@ -15,14 +15,31 @@ export default function LoginPage() {
         e.preventDefault();
         setIsLoading(true);
 
-        // In a real app, this would verify matching ID/Phone from Google Sheets
-        // For demo, we store the student info in session
-        sessionStorage.setItem("student_id", studentId);
-        sessionStorage.setItem("student_name", "홍길동");
+        try {
+            const res = await fetch("/api/students");
+            if (res.ok) {
+                const students = await res.json();
+                const student = students.find((s: any) => s.id === studentId);
 
-        setTimeout(() => {
-            router.push("/");
-        }, 1000);
+                if (student) {
+                    // Store real info from Google Sheets
+                    sessionStorage.setItem("student_id", student.id);
+                    sessionStorage.setItem("student_name", student.name);
+                    sessionStorage.setItem("parent_email", student.parentemail); // This field comes from GAS
+
+                    router.push("/");
+                } else {
+                    alert("등록되지 않은 학번입니다. 선생님께 문의하세요.");
+                }
+            } else {
+                alert("로그인 서버 오류가 발생했습니다.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("연결 오류가 발생했습니다.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (

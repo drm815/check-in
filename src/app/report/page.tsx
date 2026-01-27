@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronLeft, Send, AlertTriangle, Clock, MapPin } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -10,6 +10,14 @@ export default function ReportPage() {
     const [reason, setReason] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
+    const [studentInfo, setStudentInfo] = useState({ id: "", name: "", email: "" });
+
+    useEffect(() => {
+        const id = sessionStorage.getItem("student_id") || "";
+        const name = sessionStorage.getItem("student_name") || "";
+        const email = sessionStorage.getItem("parent_email") || "";
+        setStudentInfo({ id, name, email });
+    }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -20,11 +28,12 @@ export default function ReportPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    studentName: "홍길동",
+                    studentName: studentInfo.name,
                     type: type === 'absence' ? '결석' : '지각',
                     reason: reason,
-                    parentPhone: "01012345678", // Actual phone should be here
-                    reportId: reportId
+                    parentEmail: studentInfo.email,
+                    reportId: reportId,
+                    studentId: studentInfo.id
                 }),
             });
             if (response.ok) {
@@ -109,8 +118,8 @@ export default function ReportPage() {
 
                 <section className="premium-card bg-orange-50 border-orange-100 p-4">
                     <p className="text-xs text-orange-700 leading-relaxed">
-                        ⚠️ 신고를 완료하면 등록된 <strong>학부모님 연락처(010-****-1234)</strong>로 확인 링크가 포함된 문자(또는 카카오톡)가 발송됩니다.
-                        학부모님이 확인을 완료해야 최종 승인이 됩니다.
+                        ⚠️ 신고를 완료하면 등록된 <strong>학부모님 이메일</strong>로 확인 링크가 포함된 메일이 발송됩니다.
+                        학부모님이 메일 내의 링크를 클릭하여 확인을 완료해야 최종 승인이 됩니다.
                     </p>
                 </section>
 

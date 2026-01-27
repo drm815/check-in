@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   Calendar,
   ChevronRight,
+  Camera,
   User
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,8 +20,11 @@ import Link from "next/link";
 export default function Home() {
   const [status, setStatus] = useState<"away" | "school">("away");
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [studentName, setStudentName] = useState("");
 
   useEffect(() => {
+    const name = sessionStorage.getItem("student_name") || "";
+    setStudentName(name);
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
@@ -44,7 +48,7 @@ export default function Home() {
         <div>
           <h2 className="text-gray-500 text-sm font-medium">{dateString}</h2>
           <h1 className="text-2xl font-bold flex items-center gap-2">
-            안녕하세요, <span className="gradient-text">홍길동</span> 학생! 👋
+            안녕하세요{studentName ? `, ${studentName} 학생` : ""}! 👋
           </h1>
         </div>
         <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
@@ -92,13 +96,14 @@ export default function Home() {
             color="bg-blue-50 text-blue-600"
           />
         </Link>
-        <ActionButton
-          icon={<FileText size={28} />}
-          label="체험학습 신청"
-          sub="구글 드라이브 저장"
-          color="bg-purple-50 text-purple-600"
-          onClick={() => { }}
-        />
+        <Link href="/upload" className="contents">
+          <ActionButton
+            icon={<Camera size={28} />}
+            label="활동 사진 제출"
+            sub="드라이브 자동 저장"
+            color="bg-purple-50 text-purple-600"
+          />
+        </Link>
         <Link href="/report" className="contents">
           <ActionButton
             icon={<MessageCircle size={28} />}
@@ -117,21 +122,9 @@ export default function Home() {
         </Link>
       </div>
 
-      {/* Recent Activity */}
       <div className="flex flex-col gap-3 mt-4">
         <h3 className="text-lg font-bold">최근 활동</h3>
-        <ActivityItem
-          title="아침 등교 완료"
-          time="오전 08:24"
-          icon={<MapPin size={18} />}
-          type="checkin"
-        />
-        <ActivityItem
-          title="수학 여행 참가 신청"
-          time="어제 오후 02:15"
-          icon={<FileText size={18} />}
-          type="survey"
-        />
+        <p className="text-sm text-gray-400 text-center py-8">최근 활동 내역이 없습니다.</p>
       </div>
 
       {/* Bottom Nav Placeholder */}
