@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request) {
     const body = await request.json();
-    const { studentName, type, reason, parentEmail, reportId } = body;
+    const { studentName, type, reason, parentEmail, reportId, studentId } = body;
 
     try {
         // 1. Save to Google Sheets via GAS and send Email
@@ -12,12 +12,13 @@ export async function POST(request: Request) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    id: reportId,
+                    reportId: reportId,
+                    studentId: studentId,
                     name: studentName,
                     type: type,
                     status: 'PENDING',
                     reason: reason,
-                    parentEmail: parentEmail // Pass Email for GAS Gmail notification
+                    parentEmail: parentEmail
                 }),
             });
         }

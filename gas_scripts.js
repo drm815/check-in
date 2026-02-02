@@ -222,7 +222,7 @@ function handlePhotoUpload(data) {
 function sendParentNotification(parentEmail, studentName, reason, reportId) {
     // For testing: http://localhost:3000
     // For production: https://your-app-name.vercel.app
-    var appUrl = "https://check-jzgfv5hzk-binyunmis-projects.vercel.app";
+    var appUrl = "https://check-in-final.vercel.app";
     var verifyUrl = appUrl + "/verify/" + reportId;
 
     var subject = "[K-Mates] " + studentName + " 학부모 확인 요청 (" + reason + ")";
