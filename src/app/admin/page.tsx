@@ -76,8 +76,14 @@ export default function AdminDashboard() {
 
     const todayArrivals = attendance.filter(r => getVal(r, ["type", "유형"]) === "등교").length;
     const pendingReports = attendance.filter(r => {
-        const s = getVal(r, ["status", "상태"]).toUpperCase();
-        return s === "PENDING" || s === "대기" || (getVal(r, ["type", "유형"]) !== "등교" && getVal(r, ["type", "유형"]) !== "하교" && s === "");
+        const type = getVal(r, ["type", "유형"]);
+        const status = getVal(r, ["status", "상태"]).toUpperCase();
+
+        // It's a report (not attendance) AND it's not finished (not confirmed/rejected)
+        const isReport = type !== "" && type !== "등교" && type !== "하교";
+        const isNotFinished = status !== "CONFIRMED" && status !== "REJECTED";
+
+        return isReport && isNotFinished;
     }).length;
 
     const filteredRecords = () => {
@@ -246,7 +252,7 @@ function TableRow({ time, id, name, type, status, reason }: any) {
                 <div className="flex flex-col gap-1">
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold w-fit ${statusColor}`}>
                         {status === "CONFIRMED" ? <CheckCircle2 size={10} /> : status === "REJECTED" ? <AlertCircle size={10} /> : <Clock size={10} />}
-                        {status}
+                        {status === "PENDING" ? "승인 대기" : status}
                     </span>
                     {reason && <span className="text-[11px] text-gray-500 italic">{reason}</span>}
                 </div>
