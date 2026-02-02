@@ -96,20 +96,20 @@ export default function Home() {
   });
 
   return (
-    <main className="flex-1 flex flex-col px-[15%] pt-[20rem] pb-[15rem] gap-16 overflow-y-auto bg-[#F8FAFC]">
+    <main className="flex-1 flex flex-col max-w-lg mx-auto w-full px-8 py-16 gap-12 overflow-y-auto bg-[#F8FAFC]">
       {/* Header */}
       <div className="flex justify-between items-center animate-fade px-2">
         <div className="flex flex-col gap-2">
-          <h2 className="text-gray-400 text-[11px] font-black uppercase tracking-[0.3em] mb-2">{dateString}</h2>
-          <div className="flex items-center gap-2 text-wrap">
-            <h1 className="text-2xl font-black text-gray-900 leading-[1.3] break-keep">
+          <h2 className="text-gray-400 text-[11px] font-black uppercase tracking-[0.3em]">{dateString}</h2>
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-black text-gray-900 leading-tight">
               {studentName ? `${studentName}님,` : "안녕하세요!"} <br />
-              멋진 하루 보내세요! 🌟
+              오늘도 기분 좋은 하루 되세요! ☀️
             </h1>
           </div>
         </div>
-        <div className="w-14 h-14 rounded-[1.2rem] bg-white shadow-sm border border-gray-100 flex items-center justify-center text-indigo-600 shrink-0">
-          <User size={30} />
+        <div className="w-14 h-14 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center justify-center text-indigo-600 shrink-0">
+          <User size={28} />
         </div>
       </div>
 
@@ -132,7 +132,7 @@ export default function Home() {
               <div className="flex flex-col gap-0.5">
                 <span className={`text-[10px] font-bold uppercase tracking-[0.1em] ${status === 'school' ? 'text-rose-500/70' : 'text-sky-500/70'
                   }`}>Current Status</span>
-                <h3 className="text-2xl font-black tracking-tight leading-tight break-keep">
+                <h3 className="text-3xl font-black tracking-tighter leading-none break-keep">
                   {status === "school" ? "등교 완료" : "미등교 상태"}
                 </h3>
               </div>
