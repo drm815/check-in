@@ -129,7 +129,7 @@ export default function ReportPage() {
                 <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="btn-primary mt-2 py-4 text-lg disabled:opacity-50 w-1/2 mx-auto"
+                    className="btn-primary mt-2 py-4 text-lg disabled:opacity-50 w-1/2 self-center"
                 >
                     {isSubmitting ? "전송 중..." : "신고하기"}
                 </button>
