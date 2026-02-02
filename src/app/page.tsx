@@ -96,7 +96,7 @@ export default function Home() {
   });
 
   return (
-    <main className="flex-1 flex flex-col max-w-lg mx-auto w-full px-8 py-16 gap-12 overflow-y-auto bg-[#F8FAFC]">
+    <main className="flex-1 flex flex-col max-w-lg mx-auto w-full px-16 py-16 gap-12 overflow-y-auto bg-[#F8FAFC]">
       {/* Header */}
       <div className="flex justify-between items-center animate-fade px-2">
         <div className="flex flex-col gap-2">
@@ -132,13 +132,13 @@ export default function Home() {
               <div className="flex flex-col gap-0.5">
                 <span className={`text-[10px] font-bold uppercase tracking-[0.1em] ${status === 'school' ? 'text-rose-500/70' : 'text-sky-500/70'
                   }`}>Current Status</span>
-                <h3 className="text-3xl font-black tracking-tighter leading-none break-keep">
+                <h3 className="text-xl font-black leading-tight break-keep">
                   {status === "school" ? "등교 완료" : "미등교 상태"}
                 </h3>
               </div>
-              <div className={`p-3 rounded-2xl shrink-0 ${status === "school" ? "bg-white text-rose-500" : "bg-white text-sky-500"
+              <div className={`p-2.5 rounded-2xl shrink-0 ${status === "school" ? "bg-white text-rose-500" : "bg-white text-sky-500"
                 }`}>
-                {status === "school" ? <CheckCircle2 size={24} strokeWidth={3} /> : <Clock size={24} strokeWidth={3} />}
+                {status === "school" ? <CheckCircle2 size={22} strokeWidth={3} /> : <Clock size={22} strokeWidth={3} />}
               </div>
             </div>
 
