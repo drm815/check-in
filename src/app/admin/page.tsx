@@ -74,16 +74,28 @@ export default function AdminDashboard() {
         return "";
     };
 
-    const todayArrivals = attendance.filter(r => getVal(r, ["type", "유형"]) === "등교").length;
-    const pendingReports = attendance.filter(r => {
+    // Helper to check if a record is from today
+    const isToday = (ts: any) => {
+        if (!ts) return false;
+        const d = new Date(ts);
+        const today = new Date();
+        return d.getFullYear() === today.getFullYear() &&
+            d.getMonth() === today.getMonth() &&
+            d.getDate() === today.getDate();
+    };
+
+    const todayRecords = attendance.filter(r => isToday(getVal(r, ["timestamp", "시각", "타임스탬프"])));
+
+    const todayArrivals = todayRecords.filter(r => getVal(r, ["type", "유형"]) === "등교").length;
+    const pendingReports = todayRecords.filter(r => {
         const type = getVal(r, ["type", "유형"]);
         const status = getVal(r, ["status", "상태"]).toUpperCase();
 
-        // It's a report (not attendance) AND it's not finished (not confirmed/rejected)
+        // It's a report (not attendance) AND it's pending/not marked as finished
         const isReport = type !== "" && type !== "등교" && type !== "하교";
-        const isNotFinished = status !== "CONFIRMED" && status !== "REJECTED";
+        const isPending = status === "PENDING" || status === "대기" || status === "";
 
-        return isReport && isNotFinished;
+        return isReport && isPending;
     }).length;
 
     const filteredRecords = () => {
