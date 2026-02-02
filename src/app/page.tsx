@@ -131,15 +131,15 @@ export default function Home() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className={`relative overflow-hidden rounded-3xl p-6 shadow-sm border-2 transition-all duration-300 flex items-center justify-between ${status === "school" ? "bg-[#FFF1F2] border-[#FFE4E6] text-[#9F1239]" :
-              status === "home" ? "bg-emerald-50 border-emerald-100 text-emerald-700" :
-                "bg-[#F0F9FF] border-[#E0F2FE] text-[#075985]"
+          className={`relative overflow-hidden rounded-3xl px-[45px] py-8 shadow-sm border-2 transition-all duration-300 flex items-center justify-between ${status === "school" ? "bg-[#FFF1F2] border-[#FFE4E6] text-[#9F1239]" :
+            status === "home" ? "bg-emerald-50 border-emerald-100 text-emerald-700" :
+              "bg-[#F0F9FF] border-[#E0F2FE] text-[#075985]"
             }`}
         >
           <div className="flex items-center gap-5">
             <div className={`p-4 rounded-2xl shadow-sm ${status === "school" ? "bg-white text-rose-500" :
-                status === "home" ? "bg-white text-emerald-500" :
-                  "bg-white text-sky-500"
+              status === "home" ? "bg-white text-emerald-500" :
+                "bg-white text-sky-500"
               }`}>
               {status === "school" ? <CheckCircle2 size={32} strokeWidth={2.5} /> :
                 status === "home" ? <MapPin size={32} strokeWidth={2.5} /> :
