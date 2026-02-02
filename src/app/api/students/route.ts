@@ -7,7 +7,7 @@ export async function GET() {
             return NextResponse.json({ error: 'GAS URL not configured' }, { status: 500 });
         }
 
-        const response = await fetch(`${gasUrl}?action=getStudents`);
+        const response = await fetch(`${gasUrl}?action=getStudents`, { cache: 'no-store' });
         const students = await response.json();
 
         return NextResponse.json(students);

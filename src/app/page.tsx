@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   QrCode,
   MapPin,
@@ -21,13 +22,21 @@ export default function Home() {
   const [status, setStatus] = useState<"away" | "school">("away");
   const [currentTime, setCurrentTime] = useState(new Date());
   const [studentName, setStudentName] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
+    const studentId = sessionStorage.getItem("student_id");
+    if (!studentId) {
+      router.push("/login");
+      return;
+    }
+
     const name = sessionStorage.getItem("student_name") || "";
     setStudentName(name);
+
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [router]);
 
   const timeString = currentTime.toLocaleTimeString('ko-KR', {
     hour: '2-digit',

@@ -22,7 +22,30 @@ function doGet(e) {
         return getTopics();
     }
 
+    if (action === "getAttendance") {
+        return getAttendance();
+    }
+
     return ContentService.createTextOutput("Invalid Action").setMimeType(ContentService.MimeType.TEXT);
+}
+
+function getAttendance() {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Attendance");
+    if (!sheet) return ContentService.createTextOutput(JSON.stringify([])).setMimeType(ContentService.MimeType.JSON);
+
+    var data = sheet.getDataRange().getValues();
+    var headers = data.shift();
+    var records = data.map(function (row) {
+        var obj = {};
+        headers.forEach(function (header, j) {
+            var key = header.toLowerCase().replace(" ", "");
+            obj[key] = row[j];
+        });
+        return obj;
+    });
+
+    return ContentService.createTextOutput(JSON.stringify(records))
+        .setMimeType(ContentService.MimeType.JSON);
 }
 
 function updateReportStatus(id, status) {
@@ -199,7 +222,7 @@ function handlePhotoUpload(data) {
 function sendParentNotification(parentEmail, studentName, reason, reportId) {
     // For testing: http://localhost:3000
     // For production: https://your-app-name.vercel.app
-    var appUrl = "http://localhost:3000";
+    var appUrl = "https://check-jzgfv5hzk-binyunmis-projects.vercel.app";
     var verifyUrl = appUrl + "/verify/" + reportId;
 
     var subject = "[K-Mates] " + studentName + " 학부모 확인 요청 (" + reason + ")";
