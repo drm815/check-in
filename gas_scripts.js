@@ -6,6 +6,10 @@
 function doGet(e) {
     var action = e.parameter.action;
 
+    if (action === "setup") {
+        return setup();
+    }
+
     if (action === "getStudents") {
         return getStudents();
     }
@@ -30,7 +34,8 @@ function doGet(e) {
 }
 
 function getAttendance() {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Attendance");
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("Attendance");
     if (!sheet) return ContentService.createTextOutput(JSON.stringify([])).setMimeType(ContentService.MimeType.JSON);
 
     var data = sheet.getDataRange().getValues();
@@ -38,7 +43,7 @@ function getAttendance() {
     var records = data.map(function (row) {
         var obj = {};
         headers.forEach(function (header, j) {
-            var key = header.toLowerCase().replace(" ", "");
+            var key = header.toString().toLowerCase().replace(/\s/g, "");
             obj[key] = row[j];
         });
         return obj;
@@ -49,7 +54,8 @@ function getAttendance() {
 }
 
 function updateReportStatus(id, status) {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Attendance");
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("Attendance");
     if (!sheet) return ContentService.createTextOutput(JSON.stringify({ error: "No sheet" })).setMimeType(ContentService.MimeType.JSON);
 
     var data = sheet.getDataRange().getValues();
@@ -63,7 +69,8 @@ function updateReportStatus(id, status) {
 }
 
 function getReport(id) {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Attendance");
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("Attendance");
     if (!sheet) return ContentService.createTextOutput(JSON.stringify({ error: "No data" })).setMimeType(ContentService.MimeType.JSON);
 
     var data = sheet.getDataRange().getValues();
@@ -73,7 +80,7 @@ function getReport(id) {
         if (data[i][1].toString().trim() === id.toString().trim()) {
             report = {};
             headers.forEach(function (header, j) {
-                report[header.toLowerCase().replace(" ", "")] = data[i][j];
+                report[header.toString().toLowerCase().replace(/\s/g, "")] = data[i][j];
             });
             break;
         }
@@ -83,36 +90,85 @@ function getReport(id) {
 }
 
 function getStudents() {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Students");
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("Students");
     if (!sheet) {
-        sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Students");
+        sheet = ss.insertSheet("Students");
         sheet.appendRow(["ID", "Name", "ParentEmail", "Password"]);
+        return ContentService.createTextOutput(JSON.stringify([])).setMimeType(ContentService.MimeType.JSON);
     }
 
     var data = sheet.getDataRange().getValues();
-    var headers = data.shift();
-
-    var passIdx = headers.indexOf("Password");
-    if (passIdx === -1) {
-        sheet.getRange(1, headers.length + 1).setValue("Password");
-        headers.push("Password");
-        passIdx = headers.length - 1;
+    var headers = data[0].map(function (h) { return h.toString().trim(); });
+    var passIdx = -1;
+    for (var i = 0; i < headers.length; i++) {
+        if (headers[i].toLowerCase() === "password") {
+            passIdx = i;
+            break;
+        }
     }
 
-    var students = data.map(function (row) {
+    var students = [];
+    for (var i = 1; i < data.length; i++) {
+        var row = data[i];
+        if (!row[0] || row[0] === "") continue;
+
         var obj = {};
-        headers.forEach(function (header, i) {
-            var key = header.toString().trim().toLowerCase();
-            var val = row[i];
+        headers.forEach(function (header, j) {
+            var key = header.toLowerCase();
+            var val = row[j];
             if (key === "id") val = val.toString().trim();
             obj[key] = val;
         });
-        if (!obj.password) obj.password = obj.id;
-        return obj;
-    });
+
+        // Default password logic: if column missing or cell empty, use ID
+        if (passIdx === -1 || !row[passIdx] || row[passIdx] === "") {
+            obj.password = obj.id;
+        } else {
+            obj.password = row[passIdx].toString().trim();
+        }
+        students.push(obj);
+    }
 
     return ContentService.createTextOutput(JSON.stringify(students))
         .setMimeType(ContentService.MimeType.JSON);
+}
+
+function setup() {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+
+    // 1. Students Sheet
+    var studentSheet = ss.getSheetByName("Students");
+    if (!studentSheet) {
+        studentSheet = ss.insertSheet("Students");
+        studentSheet.appendRow(["ID", "Name", "ParentEmail", "Password"]);
+        studentSheet.appendRow(["20301", "홍길동", "parent@example.com", "20301"]);
+    } else {
+        var data = studentSheet.getDataRange().getValues();
+        var headers = data[0].map(function (h) { return h.toString().toLowerCase(); });
+        if (headers.indexOf("password") === -1) {
+            studentSheet.getRange(1, headers.length + 1).setValue("Password");
+        }
+    }
+
+    // 2. Attendance Sheet
+    if (!ss.getSheetByName("Attendance")) {
+        var attendSheet = ss.insertSheet("Attendance");
+        attendSheet.appendRow(["Timestamp", "Report ID", "Student ID", "Name", "Type", "Status", "Reason"]);
+    }
+
+    // 3. Topics Sheet
+    if (!ss.getSheetByName("Topics")) {
+        var topicSheet = ss.insertSheet("Topics");
+        topicSheet.appendRow(["Topic"]);
+        topicSheet.appendRow(["수업 시간 활동"]);
+        topicSheet.appendRow(["청소 및 봉사"]);
+        topicSheet.appendRow(["자율 활동"]);
+    }
+
+    SpreadsheetApp.flush();
+    return ContentService.createTextOutput("설치가 완료되었습니다! 시트와 로그인을 확인해 보세요.")
+        .setMimeType(ContentService.MimeType.TEXT);
 }
 
 function doPost(e) {
@@ -127,9 +183,10 @@ function doPost(e) {
         return changePassword(data.studentId, data.newPassword);
     }
 
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Attendance");
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("Attendance");
     if (!sheet) {
-        sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Attendance");
+        sheet = ss.insertSheet("Attendance");
         sheet.appendRow(["Timestamp", "Report ID", "Student ID", "Name", "Type", "Status", "Reason"]);
     }
 
@@ -152,10 +209,18 @@ function doPost(e) {
 }
 
 function changePassword(studentId, newPassword) {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Students");
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("Students");
+    if (!sheet) return ContentService.createTextOutput(JSON.stringify({ result: "error", message: "Students sheet missing" })).setMimeType(ContentService.MimeType.JSON);
+
     var data = sheet.getDataRange().getValues();
-    var headers = data[0];
-    var passIdx = headers.indexOf("Password");
+    var headers = data[0].map(function (h) { return h.toString().toLowerCase(); });
+    var passIdx = headers.indexOf("password");
+
+    if (passIdx === -1) {
+        sheet.getRange(1, headers.length + 1).setValue("Password");
+        passIdx = headers.length;
+    }
 
     for (var i = 1; i < data.length; i++) {
         if (data[i][0].toString().trim() === studentId.toString().trim()) {
@@ -169,16 +234,19 @@ function changePassword(studentId, newPassword) {
 }
 
 function getTopics() {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Topics");
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("Topics");
     if (!sheet) {
-        sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Topics");
+        sheet = ss.insertSheet("Topics");
         sheet.appendRow(["Topic"]);
-        sheet.appendRow(["수업 시간 활동", "청소 및 봉사", "자율 활동"]);
+        sheet.appendRow(["수업 시간 활동"]);
+        sheet.appendRow(["청소 및 봉사"]);
+        sheet.appendRow(["자율 활동"]);
     }
 
     var data = sheet.getDataRange().getValues();
     data.shift();
-    var topics = data.map(function (row) { return row[0]; });
+    var topics = data.map(function (row) { return row[0]; }).filter(function (t) { return t !== ""; });
 
     var rootFolderName = "K-Mates_Uploads";
     var rootFolder;
