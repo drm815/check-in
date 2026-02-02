@@ -33,6 +33,7 @@ export default function ScanPage() {
         setStatus("scanning"); // Show processing
 
         const studentId = sessionStorage.getItem("student_id");
+        const studentName = sessionStorage.getItem("student_name");
 
         try {
             const response = await fetch("/api/attendance", {
@@ -40,8 +41,9 @@ export default function ScanPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     studentId: studentId,
+                    studentName: studentName,
                     scannedId: decodedText,
-                    type: "등교" // Or dynamically determine based on time
+                    type: "등교"
                 }),
             });
 

@@ -18,15 +18,19 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'GAS URL not configured' }, { status: 500 });
         }
 
+        const reportId = Math.random().toString(36).substr(2, 9);
+
         // 2. Save to Google Sheets via GAS
         const res = await fetch(gasUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                id: studentId,
+                reportId: reportId,
+                studentId: body.studentId,
+                name: body.studentName || '알 수 없음',
                 type: type, // '등교' or '하교'
                 status: 'CONFIRMED',
-                timestamp: new Date().toISOString()
+                reason: 'QR 스캔'
             }),
         });
 

@@ -231,15 +231,50 @@ function doPost(e) {
         sheet.appendRow(["Timestamp", "Report ID", "Student ID", "Name", "Type", "Status", "Reason"]);
     }
 
-    sheet.appendRow([
-        new Date(),
-        data.reportId,
-        data.studentId,
-        data.name,
-        data.type,
-        data.status, // Expecting 'PENDING' for reports
-        data.reason || ""
-    ]);
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    var lastRow = sheet.getLastRow();
+    var nextRow = lastRow + 1;
+
+    // Map of keys to possible header names
+    var keyToHeader = {
+        "timestamp": ["Timestamp", "시각", "타임스탬프"],
+        "reportId": ["Report ID", "신고 ID", "신고ID", "ReportID"],
+        "studentId": ["Student ID", "학번", "학생 ID", "학생ID", "StudentID"],
+        "name": ["Name", "이름"],
+        "type": ["Type", "유형", "구분"],
+        "status": ["Status", "상태", "승인여부"],
+        "reason": ["Reason", "사유", "비고"]
+    };
+
+    // Find column indices
+    var colMap = {};
+    headers.forEach(function (h, idx) {
+        var cleanH = h.toString().trim().toLowerCase();
+        for (var key in keyToHeader) {
+            if (keyToHeader[key].some(function (match) { return match.toLowerCase() === cleanH; })) {
+                colMap[key] = idx + 1;
+                break;
+            }
+        }
+    });
+
+    // Default column positions if headers not found (Fallback)
+    if (!colMap.timestamp) colMap.timestamp = 1;
+    if (!colMap.reportId) colMap.reportId = 2;
+    if (!colMap.studentId) colMap.studentId = 3;
+    if (!colMap.name) colMap.name = 4;
+    if (!colMap.type) colMap.type = 5;
+    if (!colMap.status) colMap.status = 6;
+    if (!colMap.reason) colMap.reason = 7;
+
+    // Set values individually to ensure correct columns
+    sheet.getRange(nextRow, colMap.timestamp).setValue(new Date());
+    sheet.getRange(nextRow, colMap.reportId).setValue(data.reportId || "");
+    sheet.getRange(nextRow, colMap.studentId).setValue(data.studentId || "");
+    sheet.getRange(nextRow, colMap.name).setValue(data.name || "");
+    sheet.getRange(nextRow, colMap.type).setValue(data.type || "");
+    sheet.getRange(nextRow, colMap.status).setValue(data.status || "");
+    sheet.getRange(nextRow, colMap.reason).setValue(data.reason || "");
 
     if (data.status === "PENDING" && data.parentEmail) {
         sendParentNotification(data.parentEmail, data.name, data.type, data.reportId);
