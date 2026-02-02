@@ -51,9 +51,15 @@ export default function AdminDashboard() {
 
     const filteredRecords = () => {
         if (activeTab === "attendance") {
-            return attendance.filter(r => r.type === "등교" || r.type === "하교");
+            return attendance.filter(r => {
+                const t = String(r.type || "").trim();
+                return t === "등교" || t === "하교";
+            });
         } else if (activeTab === "reports") {
-            return attendance.filter(r => r.type === "지각" || r.type === "결석");
+            return attendance.filter(r => {
+                const t = String(r.type || "").trim();
+                return t === "지각" || t === "결석" || t === "조퇴" || t === "기타";
+            });
         }
         return attendance;
     };
@@ -104,14 +110,16 @@ export default function AdminDashboard() {
                             <FileSpreadsheet size={16} className="text-emerald-600" />
                             {activeTab === 'attendance' ? '등하교 기록' : activeTab === 'reports' ? '미출결 신고' : '모든 기록'}
                         </h3>
-                        <a
-                            href={process.env.NEXT_PUBLIC_SHEET_URL || "#"}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs font-semibold text-indigo-600 flex items-center gap-1 bg-white px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm"
-                        >
-                            <Download size={14} /> Google Sheets 열기
-                        </a>
+                        {process.env.NEXT_PUBLIC_SHEET_URL && (
+                            <a
+                                href={process.env.NEXT_PUBLIC_SHEET_URL}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs font-semibold text-indigo-600 flex items-center gap-1 bg-white px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm"
+                            >
+                                <Download size={14} /> Google Sheets 열기
+                            </a>
+                        )}
                     </div>
 
                     <div className="overflow-x-auto">

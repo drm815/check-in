@@ -29,7 +29,10 @@ export default function ReportPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     studentName: studentInfo.name,
-                    type: type === 'absence' ? '결석' : '지각',
+                    type:
+                        type === 'absence' ? '결석' :
+                            type === 'late' ? '지각' :
+                                type === 'leave' ? '조퇴' : '기타',
                     reason: reason,
                     parentEmail: studentInfo.email,
                     reportId: reportId,
