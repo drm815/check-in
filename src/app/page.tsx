@@ -20,6 +20,7 @@ import Link from "next/link";
 
 export default function Home() {
   const [status, setStatus] = useState<"away" | "school">("away");
+  const [scanTime, setScanTime] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [studentName, setStudentName] = useState("");
   const [announcements, setAnnouncements] = useState<any[]>([]);
@@ -35,19 +36,48 @@ export default function Home() {
     const name = sessionStorage.getItem("student_name") || "";
     setStudentName(name);
 
-    // Fetch announcements
-    const fetchAnn = async () => {
+    // Fetch Status and Announcements
+    const fetchData = async () => {
       try {
-        const res = await fetch("/api/announcements");
-        if (res.ok) {
-          const data = await res.json();
+        const [annRes, attRes] = await Promise.all([
+          fetch("/api/announcements"),
+          fetch(`/api/admin/attendance?v=${Date.now()}`)
+        ]);
+
+        if (annRes.ok) {
+          const data = await annRes.json();
           setAnnouncements(data);
+        }
+
+        if (attRes.ok) {
+          const allAtt = await attRes.json();
+          const studentId = sessionStorage.getItem("student_id");
+          const today = new Date().toISOString().split('T')[0];
+
+          // Find today's latest scan for this student
+          const todayScan = allAtt.find((r: any) => {
+            const rId = (r.studentid || r["학번"] || "").toString().trim();
+            const rDate = new Date(r.timestamp || r["시각"]).toISOString().split('T')[0];
+            return rId === studentId && rDate === today;
+          });
+
+          if (todayScan) {
+            setStatus("school");
+            const time = new Date(todayScan.timestamp || todayScan["시각"]).toLocaleTimeString('ko-KR', {
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+            setScanTime(time);
+          } else {
+            setStatus("away");
+            setScanTime(null);
+          }
         }
       } catch (err) {
         console.error(err);
       }
     };
-    fetchAnn();
+    fetchData();
 
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -89,32 +119,51 @@ export default function Home() {
 
       {/* Status Card */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="premium-card bg-indigo-600 text-white relative overflow-hidden"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className={`relative overflow-hidden rounded-[2.5rem] p-8 shadow-2xl transition-all duration-500 ${status === "school"
+            ? "bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-700 text-white"
+            : "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 text-white"
+          }`}
       >
-        <div className="relative z-10 flex flex-col gap-4">
-          <div className="flex justify-between items-start">
-            <div>
-              <p className="text-indigo-100 text-sm">현재 등교 상태</p>
-              <h3 className="text-3xl font-bold mt-1">
-                {status === "school" ? "등교 완료" : "미등교"}
+        {/* Abstract Background Shapes */}
+        <div className="absolute top-[-20%] right-[-10%] w-64 h-64 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-48 h-48 bg-black/10 rounded-full blur-2xl"></div>
+
+        <div className="relative z-10 flex flex-col gap-6">
+          <div className="flex justify-between items-center">
+            <div className="flex flex-col gap-1">
+              <span className="text-white/70 text-xs font-bold uppercase tracking-[0.2em]">Current Status</span>
+              <h3 className="text-4xl font-extrabold tracking-tight">
+                {status === "school" ? "등교 완료" : "미등교 상태"}
               </h3>
             </div>
-            <div className={`p-3 rounded-2xl ${status === "school" ? "bg-green-400/20" : "bg-white/10"}`}>
-              {status === "school" ? <CheckCircle2 size={32} /> : <Clock size={32} />}
+            <div className={`p-4 rounded-3xl backdrop-blur-md shadow-inner ${status === "school" ? "bg-white/20 text-white" : "bg-white/10 text-slate-300"
+              }`}>
+              {status === "school" ? <CheckCircle2 size={40} strokeWidth={2.5} /> : <Clock size={40} strokeWidth={2.5} />}
             </div>
           </div>
 
-          <div className="flex items-center gap-2 bg-white/10 w-fit px-3 py-1 rounded-full text-sm">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
-            현재 시각 {timeString}
+          <div className="h-px w-full bg-white/20"></div>
+
+          <div className="flex justify-between items-end">
+            <div className="flex flex-col gap-1">
+              <p className="text-[10px] text-white/60 font-medium">활동 시간 정보</p>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10">
+                  <div className={`w-2 h-2 rounded-full ${status === 'school' ? 'bg-emerald-300' : 'bg-red-400'} animate-pulse`}></div>
+                  <span className="text-xs font-bold tracking-tight">{timeString}</span>
+                </div>
+              </div>
+            </div>
+            {scanTime && (
+              <div className="text-right">
+                <p className="text-[10px] text-white/60 font-medium mb-1">마지막 스캔</p>
+                <p className="text-xl font-black">{scanTime}</p>
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Background blobs */}
-        <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute -left-10 -top-10 w-40 h-40 bg-indigo-400/20 rounded-full blur-3xl"></div>
       </motion.div>
 
       {/* Action Grid */}
@@ -168,7 +217,7 @@ export default function Home() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${ann.category === '일정' ? 'bg-blue-50 text-blue-600' :
-                        ann.category === '행사' ? 'bg-purple-50 text-purple-600' : 'bg-gray-100 text-gray-600'
+                      ann.category === '행사' ? 'bg-purple-50 text-purple-600' : 'bg-gray-100 text-gray-600'
                       }`}>
                       {ann.category}
                     </span>
