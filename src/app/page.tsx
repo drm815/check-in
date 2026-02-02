@@ -118,7 +118,7 @@ export default function Home() {
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`relative overflow-hidden rounded-[1.8rem] px-[26px] py-10 shadow-sm border-2 transition-all duration-500 ${status === "school"
+          className={`relative overflow-hidden rounded-[1.8rem] px-[35px] py-10 shadow-sm border-2 transition-all duration-500 ${status === "school"
             ? "bg-[#FFF1F2] text-[#9F1239] border-[#FFE4E6]"
             : "bg-[#F0F9FF] text-[#075985] border-[#E0F2FE]"
             }`}
