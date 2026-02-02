@@ -123,9 +123,6 @@ export default function Home() {
               </h1>
             </div>
           </div>
-          <div className="w-14 h-14 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center justify-center text-indigo-600 shrink-0">
-            <User size={28} />
-          </div>
         </div>
 
         {/* Status Card Section */}

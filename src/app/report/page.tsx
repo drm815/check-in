@@ -96,7 +96,7 @@ export default function ReportPage() {
                                 key={item.id}
                                 type="button"
                                 onClick={() => setType(item.id)}
-                                className={`p-4 rounded-2xl flex items-center gap-3 border-2 transition-all ${type === item.id
+                                className={`p-4 rounded-2xl flex items-center justify-center gap-3 border-2 transition-all ${type === item.id
                                     ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-bold'
                                     : 'border-white bg-white text-gray-400'
                                     }`}
@@ -129,7 +129,7 @@ export default function ReportPage() {
                 <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="btn-primary mt-2 py-4 text-lg disabled:opacity-50"
+                    className="btn-primary mt-2 py-4 text-lg disabled:opacity-50 w-1/2 mx-auto"
                 >
                     {isSubmitting ? "전송 중..." : "신고하기"}
                 </button>
