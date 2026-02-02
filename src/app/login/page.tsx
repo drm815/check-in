@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 
 export default function LoginPage() {
     const [studentId, setStudentId] = useState("");
-    const [password, setPassword] = useState(""); // Default: last 4 digits of phone
+    const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
@@ -19,24 +19,26 @@ export default function LoginPage() {
             const res = await fetch("/api/students");
             if (res.ok) {
                 const students = await res.json();
-                const student = students.find((s: any) => s.id === studentId);
+                const student = students.find((s: any) => s.id === studentId.trim());
 
                 if (student) {
-                    // Store real info from Google Sheets
-                    sessionStorage.setItem("student_id", student.id);
-                    sessionStorage.setItem("student_name", student.name);
-                    sessionStorage.setItem("parent_email", student.parentemail); // This field comes from GAS
-
-                    router.push("/");
+                    // Check password (default is studentId if not set)
+                    const correctPassword = student.password || student.id;
+                    if (password === correctPassword) {
+                        sessionStorage.setItem("student_id", student.id);
+                        sessionStorage.setItem("student_name", student.name);
+                        sessionStorage.setItem("parent_email", student.parentemail);
+                        router.push("/");
+                    } else {
+                        alert("비밀번호가 일치하지 않습니다.");
+                    }
                 } else {
-                    alert("등록되지 않은 학번입니다. 선생님께 문의하세요.");
+                    alert("등록되지 않은 학번입니다.");
                 }
-            } else {
-                alert("로그인 서버 오류가 발생했습니다.");
             }
-        } catch (err) {
-            console.error(err);
-            alert("연결 오류가 발생했습니다.");
+        } catch (error) {
+            console.error(error);
+            alert("로그인 중 오류가 발생했습니다.");
         } finally {
             setIsLoading(false);
         }
@@ -73,7 +75,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700 ml-1">비밀번호 (초기: 부모님 전화번호 뒤 4자리)</label>
+                    <label className="text-sm font-bold text-gray-700 ml-1">비밀번호 (초기: 학번 5자리)</label>
                     <input
                         type="password"
                         required

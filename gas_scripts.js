@@ -53,10 +53,9 @@ function updateReportStatus(id, status) {
     if (!sheet) return ContentService.createTextOutput(JSON.stringify({ error: "No sheet" })).setMimeType(ContentService.MimeType.JSON);
 
     var data = sheet.getDataRange().getValues();
-    // Report ID is in the column index 1 (2nd column)
     for (var i = 1; i < data.length; i++) {
         if (data[i][1].toString().trim() === id.toString().trim()) {
-            sheet.getRange(i + 1, 6).setValue(status); // Status is in the 6th column
+            sheet.getRange(i + 1, 6).setValue(status);
             return ContentService.createTextOutput(JSON.stringify({ result: "success" })).setMimeType(ContentService.MimeType.JSON);
         }
     }
@@ -69,8 +68,6 @@ function getReport(id) {
 
     var data = sheet.getDataRange().getValues();
     var headers = data.shift();
-
-    // Find row with matching ID (reportId)
     var report = null;
     for (var i = 0; i < data.length; i++) {
         if (data[i][1].toString().trim() === id.toString().trim()) {
@@ -81,7 +78,6 @@ function getReport(id) {
             break;
         }
     }
-
     return ContentService.createTextOutput(JSON.stringify(report))
         .setMimeType(ContentService.MimeType.JSON);
 }
@@ -89,13 +85,20 @@ function getReport(id) {
 function getStudents() {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Students");
     if (!sheet) {
-        // Create default sheet if doesn't exist
         sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Students");
-        sheet.appendRow(["ID", "Name", "ParentEmail"]);
+        sheet.appendRow(["ID", "Name", "ParentEmail", "Password"]);
     }
 
     var data = sheet.getDataRange().getValues();
     var headers = data.shift();
+
+    var passIdx = headers.indexOf("Password");
+    if (passIdx === -1) {
+        sheet.getRange(1, headers.length + 1).setValue("Password");
+        headers.push("Password");
+        passIdx = headers.length - 1;
+    }
+
     var students = data.map(function (row) {
         var obj = {};
         headers.forEach(function (header, i) {
@@ -104,47 +107,11 @@ function getStudents() {
             if (key === "id") val = val.toString().trim();
             obj[key] = val;
         });
+        if (!obj.password) obj.password = obj.id;
         return obj;
     });
 
     return ContentService.createTextOutput(JSON.stringify(students))
-        .setMimeType(ContentService.MimeType.JSON);
-}
-
-function getTopics() {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Topics");
-    if (!sheet) {
-        sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Topics");
-        sheet.appendRow(["Topic"]);
-        sheet.appendRow(["수업 시간 활동"]);
-        sheet.appendRow(["청소 및 봉사"]);
-        sheet.appendRow(["자율 활동"]);
-    }
-
-    var data = sheet.getDataRange().getValues();
-    data.shift(); // Remove header
-    var topics = data.map(function (row) { return row[0]; });
-
-    // Ensure folders exist for each topic
-    var rootFolderName = "K-Mates_Uploads";
-    var rootFolder;
-    var folders = DriveApp.getFoldersByName(rootFolderName);
-    if (folders.hasNext()) {
-        rootFolder = folders.next();
-    } else {
-        rootFolder = DriveApp.createFolder(rootFolderName);
-    }
-
-    topics.forEach(function (topic) {
-        if (topic) {
-            var topicFolders = rootFolder.getFoldersByName(topic);
-            if (!topicFolders.hasNext()) {
-                rootFolder.createFolder(topic);
-            }
-        }
-    });
-
-    return ContentService.createTextOutput(JSON.stringify(topics))
         .setMimeType(ContentService.MimeType.JSON);
 }
 
@@ -156,7 +123,10 @@ function doPost(e) {
         return handlePhotoUpload(data);
     }
 
-    // Default: Attendance/Report logic
+    if (action === "changePassword") {
+        return changePassword(data.studentId, data.newPassword);
+    }
+
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Attendance");
     if (!sheet) {
         sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Attendance");
@@ -181,10 +151,34 @@ function doPost(e) {
         .setMimeType(ContentService.MimeType.JSON);
 }
 
-function handlePhotoUpload(data) {
-    var studentName = data.name;
-    var topic = data.topic;
-    var images = data.images; // Array of { name: string, base64: string }
+function changePassword(studentId, newPassword) {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Students");
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+    var passIdx = headers.indexOf("Password");
+
+    for (var i = 1; i < data.length; i++) {
+        if (data[i][0].toString().trim() === studentId.toString().trim()) {
+            sheet.getRange(i + 1, passIdx + 1).setValue(newPassword);
+            return ContentService.createTextOutput(JSON.stringify({ result: "success" }))
+                .setMimeType(ContentService.MimeType.JSON);
+        }
+    }
+    return ContentService.createTextOutput(JSON.stringify({ result: "error", message: "Student not found" }))
+        .setMimeType(ContentService.MimeType.JSON);
+}
+
+function getTopics() {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Topics");
+    if (!sheet) {
+        sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("Topics");
+        sheet.appendRow(["Topic"]);
+        sheet.appendRow(["수업 시간 활동", "청소 및 봉사", "자율 활동"]);
+    }
+
+    var data = sheet.getDataRange().getValues();
+    data.shift();
+    var topics = data.map(function (row) { return row[0]; });
 
     var rootFolderName = "K-Mates_Uploads";
     var rootFolder;
@@ -195,22 +189,30 @@ function handlePhotoUpload(data) {
         rootFolder = DriveApp.createFolder(rootFolderName);
     }
 
-    // 1. Find or create Topic subfolder
+    topics.forEach(function (topic) {
+        if (topic && !rootFolder.getFoldersByName(topic).hasNext()) {
+            rootFolder.createFolder(topic);
+        }
+    });
+
+    return ContentService.createTextOutput(JSON.stringify(topics))
+        .setMimeType(ContentService.MimeType.JSON);
+}
+
+function handlePhotoUpload(data) {
+    var rootFolder;
+    var folders = DriveApp.getFoldersByName("K-Mates_Uploads");
+    rootFolder = folders.hasNext() ? folders.next() : DriveApp.createFolder("K-Mates_Uploads");
+
     var topicFolder;
-    var topicFolders = rootFolder.getFoldersByName(topic);
-    if (topicFolders.hasNext()) {
-        topicFolder = topicFolders.next();
-    } else {
-        topicFolder = rootFolder.createFolder(topic);
-    }
+    var topicFolders = rootFolder.getFoldersByName(data.topic);
+    topicFolder = topicFolders.hasNext() ? topicFolders.next() : rootFolder.createFolder(data.topic);
 
     var today = Utilities.formatDate(new Date(), "GMT+9", "yyyy-MM-dd");
-
-    // 2. Upload images inside Topic folder with Date_Name filename
-    images.forEach(function (img, index) {
+    data.images.forEach(function (img, index) {
         var base64Data = img.base64.split(",")[1];
         var decoded = Utilities.base64Decode(base64Data);
-        var fileName = today + "_" + studentName + "_" + (index + 1) + ".jpg";
+        var fileName = today + "_" + data.name + "_" + (index + 1) + ".jpg";
         var blob = Utilities.newBlob(decoded, "image/jpeg", fileName);
         topicFolder.createFile(blob);
     });
@@ -220,11 +222,8 @@ function handlePhotoUpload(data) {
 }
 
 function sendParentNotification(parentEmail, studentName, reason, reportId) {
-    // For testing: http://localhost:3000
-    // For production: https://your-app-name.vercel.app
     var appUrl = "https://check-in-final.vercel.app";
     var verifyUrl = appUrl + "/verify/" + reportId;
-
     var subject = "[K-Mates] " + studentName + " 학부모 확인 요청 (" + reason + ")";
     var body = studentName + " 학생의 " + reason + " 신고가 접수되었습니다.\n\n" +
         "사유: " + (reason || "사유 없음") + "\n\n" +

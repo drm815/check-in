@@ -16,6 +16,7 @@ import {
     Loader2
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
 export default function AdminDashboard() {
@@ -23,8 +24,15 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [students, setStudents] = useState<any[]>([]);
     const [attendance, setAttendance] = useState<any[]>([]);
+    const router = useRouter();
 
     useEffect(() => {
+        const adminLogin = sessionStorage.getItem("admin_login");
+        if (!adminLogin) {
+            router.push("/admin/login");
+            return;
+        }
+
         async function fetchData() {
             setLoading(true);
             try {

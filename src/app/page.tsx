@@ -54,11 +54,18 @@ export default function Home() {
     <main className="flex-1 flex flex-col p-6 gap-6 overflow-y-auto bg-[#F8FAFC]">
       {/* Header */}
       <div className="flex justify-between items-center animate-fade">
-        <div>
+        <div className="flex flex-col">
           <h2 className="text-gray-500 text-sm font-medium">{dateString}</h2>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            안녕하세요{studentName ? `, ${studentName} 학생` : ""}! 👋
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              안녕하세요{studentName ? `, ${studentName} 학생` : ""}! 👋
+            </h1>
+            {studentName && (
+              <Link href="/settings/password" className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full hover:bg-slate-200 transition-colors">
+                비밀번호 변경
+              </Link>
+            )}
+          </div>
         </div>
         <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
           <User size={24} />

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Printer, ChevronLeft, Download } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 interface Student {
     id: string;
@@ -14,8 +15,15 @@ interface Student {
 export default function QRPrintPage() {
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
+    const router = useRouter();
 
     useEffect(() => {
+        const adminLogin = sessionStorage.getItem("admin_login");
+        if (!adminLogin) {
+            router.push("/admin/login");
+            return;
+        }
+
         async function fetchStudents() {
             try {
                 const res = await fetch("/api/students");
