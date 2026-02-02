@@ -17,28 +17,37 @@ export default function LoginPage() {
 
         try {
             const res = await fetch("/api/students");
-            if (res.ok) {
-                const students = await res.json();
-                const student = students.find((s: any) => s.id === studentId.trim());
+            if (!res.ok) {
+                const errorData = await res.json();
+                alert(`서버 응답 오류: ${errorData.error || '알 수 없는 오류'}`);
+                return;
+            }
 
-                if (student) {
-                    // Check password (default is studentId if not set)
-                    const correctPassword = student.password || student.id;
-                    if (password === correctPassword) {
-                        sessionStorage.setItem("student_id", student.id);
-                        sessionStorage.setItem("student_name", student.name);
-                        sessionStorage.setItem("parent_email", student.parentemail);
-                        router.push("/");
-                    } else {
-                        alert("비밀번호가 일치하지 않습니다.");
-                    }
+            const students = await res.json();
+            const inputId = studentId.trim();
+            const inputPass = password.trim();
+
+            const student = students.find((s: any) =>
+                String(s.id).trim() === inputId
+            );
+
+            if (student) {
+                const correctPassword = String(student.password || student.id).trim();
+
+                if (inputPass === correctPassword) {
+                    sessionStorage.setItem("student_id", student.id);
+                    sessionStorage.setItem("student_name", student.name);
+                    sessionStorage.setItem("parent_email", student.parentemail);
+                    router.push("/");
                 } else {
-                    alert("등록되지 않은 학번입니다.");
+                    alert("비밀번호가 일치하지 않습니다. (초기 비밀번호는 학번입니다)");
                 }
+            } else {
+                alert(`등록되지 않은 학번(${inputId})입니다. 시트 정보를 확인하거나 선생님께 문의하세요.`);
             }
         } catch (error) {
             console.error(error);
-            alert("로그인 중 오류가 발생했습니다.");
+            alert("연결 오류가 발생했습니다. 구글 앱 스크립트 배포 주소를 확인해 주세요.");
         } finally {
             setIsLoading(false);
         }

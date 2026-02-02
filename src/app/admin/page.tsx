@@ -54,8 +54,8 @@ export default function AdminDashboard() {
 
     // Derived data
     const totalStudents = students.length;
-    const todayArrivals = attendance.filter(r => r.type === "등교").length;
-    const pendingReports = attendance.filter(r => r.status === "PENDING").length;
+    const todayArrivals = attendance.filter(r => String(r.type || "").trim() === "등교").length;
+    const pendingReports = attendance.filter(r => String(r.status || "").trim().toUpperCase() === "PENDING").length;
 
     const filteredRecords = () => {
         if (activeTab === "attendance") {
@@ -66,7 +66,8 @@ export default function AdminDashboard() {
         } else if (activeTab === "reports") {
             return attendance.filter(r => {
                 const t = String(r.type || "").trim();
-                return t === "지각" || t === "결석" || t === "조퇴" || t === "기타";
+                // Show anything that is not normal attendance
+                return t !== "" && t !== "등교" && t !== "하교";
             });
         }
         return attendance;
