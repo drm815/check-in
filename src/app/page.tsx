@@ -118,53 +118,56 @@ export default function Home() {
       </div>
 
       {/* Status Card */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className={`relative overflow-hidden rounded-[2.5rem] p-8 shadow-2xl transition-all duration-500 ${status === "school"
-            ? "bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-700 text-white"
-            : "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 text-white"
-          }`}
-      >
-        {/* Abstract Background Shapes */}
-        <div className="absolute top-[-20%] right-[-10%] w-64 h-64 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-[-10%] left-[-10%] w-48 h-48 bg-black/10 rounded-full blur-2xl"></div>
+      <div className="px-1">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className={`relative overflow-hidden rounded-[2rem] p-7 shadow-sm border transition-shadow duration-500 ${status === "school"
+              ? "bg-[#FFF1F2] text-[#9F1239] border-[#FECDD3]"
+              : "bg-[#F0F9FF] text-[#075985] border-[#BAE6FD]"
+            }`}
+        >
+          {/* Subtle Background Elements */}
+          <div className={`absolute top-[-10%] right-[-5%] w-48 h-48 rounded-full blur-3xl ${status === 'school' ? 'bg-rose-400/10' : 'bg-sky-400/10'
+            }`}></div>
 
-        <div className="relative z-10 flex flex-col gap-6">
-          <div className="flex justify-between items-center">
-            <div className="flex flex-col gap-1">
-              <span className="text-white/70 text-xs font-bold uppercase tracking-[0.2em]">Current Status</span>
-              <h3 className="text-4xl font-extrabold tracking-tight">
-                {status === "school" ? "등교 완료" : "미등교 상태"}
-              </h3>
+          <div className="relative z-10 flex flex-col gap-6">
+            <div className="flex justify-between items-center">
+              <div className="flex flex-col gap-0.5">
+                <span className={`text-[10px] font-bold uppercase tracking-[0.1em] ${status === 'school' ? 'text-rose-500/70' : 'text-sky-500/70'
+                  }`}>Current Status</span>
+                <h3 className="text-3xl font-black tracking-tight">
+                  {status === "school" ? "등교 완료" : "미등교 상태"}
+                </h3>
+              </div>
+              <div className={`p-3 rounded-2xl ${status === "school" ? "bg-rose-100 text-rose-500" : "bg-sky-100 text-sky-500"
+                }`}>
+                {status === "school" ? <CheckCircle2 size={32} strokeWidth={2.5} /> : <Clock size={32} strokeWidth={2.5} />}
+              </div>
             </div>
-            <div className={`p-4 rounded-3xl backdrop-blur-md shadow-inner ${status === "school" ? "bg-white/20 text-white" : "bg-white/10 text-slate-300"
-              }`}>
-              {status === "school" ? <CheckCircle2 size={40} strokeWidth={2.5} /> : <Clock size={40} strokeWidth={2.5} />}
-            </div>
-          </div>
 
-          <div className="h-px w-full bg-white/20"></div>
+            <div className={`h-px w-full ${status === 'school' ? 'bg-rose-200/50' : 'bg-sky-200/50'}`}></div>
 
-          <div className="flex justify-between items-end">
-            <div className="flex flex-col gap-1">
-              <p className="text-[10px] text-white/60 font-medium">활동 시간 정보</p>
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10">
-                  <div className={`w-2 h-2 rounded-full ${status === 'school' ? 'bg-emerald-300' : 'bg-red-400'} animate-pulse`}></div>
-                  <span className="text-xs font-bold tracking-tight">{timeString}</span>
+            <div className="flex justify-between items-end">
+              <div className="flex flex-col gap-1.5">
+                <p className={`text-[10px] font-bold ${status === 'school' ? 'text-rose-400' : 'text-sky-400'
+                  }`}>활동 시각 정보</p>
+                <div className="flex items-center gap-1.5 w-fit">
+                  <div className={`w-2 h-2 rounded-full ${status === 'school' ? 'bg-rose-400' : 'bg-sky-400'} animate-pulse`}></div>
+                  <span className="text-sm font-extrabold tracking-tight">{timeString}</span>
                 </div>
               </div>
+              {scanTime && (
+                <div className="text-right">
+                  <p className={`text-[10px] font-bold mb-0.5 ${status === 'school' ? 'text-rose-400' : 'text-sky-400'
+                    }`}>최종 스캔</p>
+                  <p className="text-lg font-black">{scanTime}</p>
+                </div>
+              )}
             </div>
-            {scanTime && (
-              <div className="text-right">
-                <p className="text-[10px] text-white/60 font-medium mb-1">마지막 스캔</p>
-                <p className="text-xl font-black">{scanTime}</p>
-              </div>
-            )}
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
 
       {/* Action Grid */}
       <div className="grid grid-cols-2 gap-4">
