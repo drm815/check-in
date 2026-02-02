@@ -43,25 +43,25 @@ export default function AdminLoginPage() {
                 onSubmit={handleLogin}
                 className="flex flex-col gap-4 max-w-sm mx-auto w-full bg-white p-8 rounded-3xl shadow-sm border border-slate-100"
             >
-                <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-500 ml-1 uppercase tracking-wider">ID</label>
+                <div className="flex items-center gap-4">
+                    <label className="text-xs font-black text-gray-500 uppercase tracking-wider w-20 shrink-0">ID</label>
                     <input
                         type="text"
                         required
                         placeholder="Admin ID"
-                        className="w-full p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                        className="flex-1 p-4 rounded-2xl bg-white border-2 border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm"
                         value={adminId}
                         onChange={(e) => setAdminId(e.target.value)}
                     />
                 </div>
 
-                <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-500 ml-1 uppercase tracking-wider">Password</label>
+                <div className="flex items-center gap-4">
+                    <label className="text-xs font-black text-gray-500 uppercase tracking-wider w-20 shrink-0">PW</label>
                     <input
                         type="password"
                         required
                         placeholder="Password"
-                        className="w-full p-4 rounded-2xl bg-slate-50 border-none focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                        className="flex-1 p-4 rounded-2xl bg-white border-2 border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm"
                         value={adminPassword}
                         onChange={(e) => setAdminPassword(e.target.value)}
                     />
@@ -69,7 +69,7 @@ export default function AdminLoginPage() {
 
                 <button
                     disabled={isLoading}
-                    className="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl mt-4 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2"
+                    className="w-1/2 mx-auto bg-indigo-600 text-white font-black py-4 rounded-2xl mt-4 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2"
                 >
                     {isLoading ? <Loader2 className="animate-spin" /> : <LogIn size={20} />}
                     로그인
