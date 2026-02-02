@@ -128,11 +128,11 @@ export default function Home() {
         </div>
 
         {/* Status Card */}
-        <div className="px-0">
+        <div className="px-6">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={`relative overflow-hidden rounded-3xl p-5 shadow-sm border-2 transition-all duration-300 flex items-center justify-center gap-10 ${status === "school" ? "bg-[#FFF1F2] border-[#FFE4E6] text-[#9F1239]" :
+            className={`relative overflow-hidden rounded-3xl p-5 shadow-sm border-2 transition-all duration-300 flex items-center justify-center gap-6 ${status === "school" ? "bg-[#FFF1F2] border-[#FFE4E6] text-[#9F1239]" :
               status === "home" ? "bg-emerald-50 border-emerald-100 text-emerald-700" :
                 "bg-[#F0F9FF] border-[#E0F2FE] text-[#075985]"
               }`}
