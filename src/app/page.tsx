@@ -19,7 +19,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
 export default function Home() {
-  const [status, setStatus] = useState<"away" | "school">("away");
+  const [status, setStatus] = useState<"away" | "school" | "home">("away");
   const [scanTime, setScanTime] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [studentName, setStudentName] = useState("");
@@ -54,16 +54,29 @@ export default function Home() {
           const studentId = sessionStorage.getItem("student_id");
           const today = new Date().toISOString().split('T')[0];
 
-          // Find today's latest scan for this student
-          const todayScan = allAtt.find((r: any) => {
+          // Find today's records for this student and take the latest one
+          const studentRecords = allAtt.filter((r: any) => {
             const rId = (r.studentid || r["학번"] || "").toString().trim();
             const rDate = new Date(r.timestamp || r["시각"]).toISOString().split('T')[0];
             return rId === studentId && rDate === today;
           });
 
-          if (todayScan) {
-            setStatus("school");
-            const time = new Date(todayScan.timestamp || todayScan["시각"]).toLocaleTimeString('ko-KR', {
+          if (studentRecords.length > 0) {
+            // Sort by timestamp desc to get the latest
+            studentRecords.sort((a: any, b: any) =>
+              new Date(b.timestamp || b["시각"]).getTime() - new Date(a.timestamp || a["시각"]).getTime()
+            );
+
+            const latest = studentRecords[0];
+            const type = (latest.type || latest["유형"] || "").toString().trim();
+
+            if (type === "하교") {
+              setStatus("home");
+            } else {
+              setStatus("school");
+            }
+
+            const time = new Date(latest.timestamp || latest["시각"]).toLocaleTimeString('ko-KR', {
               hour: '2-digit',
               minute: '2-digit'
             });
@@ -116,51 +129,38 @@ export default function Home() {
       {/* Status Card */}
       <div className="px-0">
         <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`relative overflow-hidden rounded-[1.2rem] px-[35px] py-10 shadow-sm border-2 transition-all duration-500 ${status === "school"
-            ? "bg-[#FFF1F2] text-[#9F1239] border-[#FFE4E6]"
-            : "bg-[#F0F9FF] text-[#075985] border-[#E0F2FE]"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className={`relative overflow-hidden rounded-3xl p-6 shadow-sm border-2 transition-all duration-300 flex items-center justify-between ${status === "school" ? "bg-[#FFF1F2] border-[#FFE4E6] text-[#9F1239]" :
+              status === "home" ? "bg-emerald-50 border-emerald-100 text-emerald-700" :
+                "bg-[#F0F9FF] border-[#E0F2FE] text-[#075985]"
             }`}
         >
-          {/* Subtle Background Elements */}
-          <div className={`absolute top-[-10%] right-[-5%] w-48 h-48 rounded-full blur-3xl ${status === 'school' ? 'bg-rose-400/10' : 'bg-sky-400/10'
-            }`}></div>
-
-          <div className="relative z-10 flex flex-col gap-8">
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <span className={`text-[10px] font-black uppercase tracking-[0.2em] opacity-60`}>Current Status</span>
-                <h3 className="text-3xl font-black leading-none break-keep">
-                  {status === "school" ? "등교 완료" : "미등교 상태"}
-                </h3>
-              </div>
-              <div className={`w-fit p-3 rounded-2xl ${status === "school" ? "bg-white/80 text-rose-500" : "bg-white/80 text-sky-500"
-                }`}>
-                {status === "school" ? <CheckCircle2 size={28} strokeWidth={3} /> : <Clock size={28} strokeWidth={3} />}
-              </div>
+          <div className="flex items-center gap-5">
+            <div className={`p-4 rounded-2xl shadow-sm ${status === "school" ? "bg-white text-rose-500" :
+                status === "home" ? "bg-white text-emerald-500" :
+                  "bg-white text-sky-500"
+              }`}>
+              {status === "school" ? <CheckCircle2 size={32} strokeWidth={2.5} /> :
+                status === "home" ? <MapPin size={32} strokeWidth={2.5} /> :
+                  <Clock size={32} strokeWidth={2.5} />}
             </div>
-
-            <div className={`h-px w-full ${status === 'school' ? 'bg-rose-200/50' : 'bg-sky-200/50'}`}></div>
-
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col gap-2">
-                <p className={`text-[10px] font-bold ${status === 'school' ? 'text-rose-400' : 'text-sky-400'
-                  }`}>활동 시각 정보</p>
-                <div className="flex items-center gap-2 w-fit">
-                  <div className={`w-2.5 h-2.5 rounded-full ${status === 'school' ? 'bg-rose-400' : 'bg-sky-400'} animate-pulse`}></div>
-                  <span className="text-lg font-black tracking-tight">{timeString}</span>
-                </div>
-              </div>
-              {scanTime && (
-                <div className="flex flex-col gap-1">
-                  <p className={`text-[10px] font-bold ${status === 'school' ? 'text-rose-400' : 'text-sky-400'
-                    }`}>최종 스캔</p>
-                  <p className="text-2xl font-black">{scanTime}</p>
-                </div>
-              )}
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-black uppercase tracking-widest opacity-60">
+                {status === "school" ? "In School" : status === "home" ? "Returned Home" : "Away"}
+              </span>
+              <h3 className="text-2xl font-black tracking-tight">
+                {status === "school" ? "등교 완료" : status === "home" ? "하교 완료" : "미등교 상태"}
+              </h3>
             </div>
           </div>
+
+          {scanTime && (
+            <div className="text-right flex flex-col items-end gap-1">
+              <span className="text-[10px] font-bold opacity-60">최종 스캔</span>
+              <span className="text-xl font-black">{scanTime}</span>
+            </div>
+          )}
         </motion.div>
       </div>
 
