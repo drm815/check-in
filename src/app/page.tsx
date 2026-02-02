@@ -110,8 +110,8 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex justify-center">
-      <main className="w-full max-w-[480px] flex flex-col px-[15%] py-16 gap-10 overflow-y-auto min-h-screen">
+    <div className="min-h-screen bg-[#F8FAFC]">
+      <main className="w-full max-w-[1200px] mx-auto flex flex-col px-10 py-16 gap-16 overflow-y-auto min-h-screen">
         {/* Header */}
         <div className="flex justify-between items-center animate-fade px-2">
           <div className="flex flex-col gap-2">
@@ -128,17 +128,17 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Status Card */}
-        <div className="w-full">
+        {/* Status Card Section */}
+        <div className="w-full max-w-[700px] mx-auto">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={`relative overflow-hidden rounded-[3rem] p-10 shadow-lg border-2 transition-all duration-300 flex flex-col items-center justify-center gap-6 ${status === "school" ? "bg-[#FFF1F2] border-[#FFE4E6] text-[#9F1239]" :
+            className={`relative overflow-hidden rounded-[4rem] p-12 shadow-xl border-2 transition-all duration-300 flex flex-col items-center justify-center gap-8 ${status === "school" ? "bg-[#FFF1F2] border-[#FFE4E6] text-[#9F1239]" :
               status === "home" ? "bg-emerald-50 border-emerald-100 text-emerald-700" :
                 "bg-[#F0F9FF] border-[#E0F2FE] text-[#075985]"
               }`}
           >
-            <div className="flex flex-col items-center gap-4">
+            <div className="flex flex-col items-center gap-6">
               <div className={`p-4 rounded-2xl shadow-sm ${status === "school" ? "bg-white text-rose-500" :
                 status === "home" ? "bg-white text-emerald-500" :
                   "bg-white text-sky-500"
@@ -148,71 +148,73 @@ export default function Home() {
                     <Clock size={32} strokeWidth={2.5} />}
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-sm font-black uppercase tracking-[0.2em] opacity-60">
+                <span className="text-base font-black uppercase tracking-[0.3em] opacity-60">
                   {status === "school" ? "In School" : status === "home" ? "Returned Home" : "Away"}
                 </span>
-                <h3 className="text-4xl font-black tracking-tight text-center leading-none">
+                <h3 className="text-5xl font-black tracking-tight text-center leading-none">
                   {status === "school" ? "등교 완료" : status === "home" ? "하교 완료" : "미등교 상태"}
                 </h3>
               </div>
             </div>
 
             {scanTime && (
-              <div className="mt-2 pt-4 border-t border-current border-dashed opacity-30 w-full flex flex-col items-center gap-1">
-                <span className="text-[11px] font-bold">최종 스캔 시각</span>
-                <span className="text-2xl font-black tracking-tighter">{scanTime}</span>
+              <div className="mt-4 pt-6 border-t border-current border-dashed opacity-30 w-full flex flex-col items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-widest">Last Scanned At</span>
+                <span className="text-3xl font-black tracking-tighter">{scanTime}</span>
               </div>
             )}
           </motion.div>
         </div>
 
         {/* Action Grid */}
-        {/* Action Grid - 2x2 Grid Layout */}
-        <div className="grid grid-cols-2 gap-4">
-          <Link href="/scan" className="contents">
-            <ActionButton
-              icon={<QrCode size={30} />}
-              label="출결 스캔"
-              sub="QR/NFC"
-              color="bg-blue-50 text-blue-600"
-            />
-          </Link>
-          <Link href="/upload" className="contents">
-            <ActionButton
-              icon={<Camera size={30} />}
-              label="활동 기록"
-              sub="사진 제출"
-              color="bg-purple-50 text-purple-600"
-            />
-          </Link>
-          <Link href="/report" className="contents">
-            <ActionButton
-              icon={<MessageCircle size={30} />}
-              label="출결 신고"
-              sub="사유 제출"
-              color="bg-orange-50 text-orange-600"
-            />
-          </Link>
-          <Link href="/settings/password" className="contents">
-            <ActionButton
-              icon={<Settings size={30} />}
-              label="비번 변경"
-              sub="보안 설정"
-              color="bg-emerald-50 text-emerald-600"
-            />
-          </Link>
+        {/* Action Grid Section */}
+        <div className="w-full max-w-[800px] mx-auto">
+          <div className="grid grid-cols-2 gap-8">
+            <Link href="/scan" className="contents">
+              <ActionButton
+                icon={<QrCode size={40} />}
+                label="출결 스캔"
+                sub="QR/NFC 태그 체크"
+                color="bg-blue-50 text-blue-600"
+              />
+            </Link>
+            <Link href="/upload" className="contents">
+              <ActionButton
+                icon={<Camera size={40} />}
+                label="활동 기록"
+                sub="오늘의 사진 제출"
+                color="bg-purple-50 text-purple-600"
+              />
+            </Link>
+            <Link href="/report" className="contents">
+              <ActionButton
+                icon={<MessageCircle size={40} />}
+                label="출결 신고"
+                sub="지각/결석 사유"
+                color="bg-orange-50 text-orange-600"
+              />
+            </Link>
+            <Link href="/settings/password" className="contents">
+              <ActionButton
+                icon={<Settings size={40} />}
+                label="비번 변경"
+                sub="보안 계정 설정"
+                color="bg-emerald-50 text-emerald-600"
+              />
+            </Link>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-4 mt-4 pb-8">
-          <h3 className="text-lg font-bold flex items-center justify-between">
+        <div className="flex flex-col gap-6 mt-8 pb-12 max-w-[800px] mx-auto w-full">
+          <h3 className="text-2xl font-black flex items-center justify-between px-2">
             중요 공지 및 일정
-            <span className="text-[10px] text-indigo-500 font-normal border border-indigo-100 px-2 py-0.5 rounded-full">New</span>
+            <span className="text-xs text-indigo-500 font-bold border-2 border-indigo-100 px-3 py-1 rounded-full bg-indigo-50/50">New Notifications</span>
           </h3>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-6">
             {announcements.length === 0 ? (
-              <div className="premium-card p-8 flex flex-col items-center gap-2 text-center bg-gray-50/50 border-dashed border-2">
-                <Bell className="text-gray-300" size={32} />
-                <p className="text-sm text-gray-400">현재 등록된 주요 일정이 없습니다.</p>
+              <div className="premium-card p-12 flex flex-col items-center gap-4 text-center bg-gray-50/50 border-dashed border-2 rounded-[3rem]">
+                <Bell className="text-gray-300" size={48} />
+                <p className="text-lg text-gray-400 font-medium">현재 등록된 주요 일정이 없습니다.</p>
               </div>
             ) : (
               announcements.map((ann, i) => (
@@ -221,20 +223,20 @@ export default function Home() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.1 }}
-                  className="premium-card p-4 flex flex-col gap-2 hover:border-indigo-100 transition-colors cursor-pointer group"
+                  className="premium-card p-8 flex flex-col gap-4 hover:border-indigo-100 transition-all cursor-pointer group rounded-[2.5rem] shadow-sm hover:shadow-md"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${ann.category === '일정' ? 'bg-blue-50 text-blue-600' :
+                    <div className="flex items-center gap-3">
+                      <span className={`text-xs px-3 py-1 rounded-full font-black ${ann.category === '일정' ? 'bg-blue-50 text-blue-600' :
                         ann.category === '행사' ? 'bg-purple-50 text-purple-600' : 'bg-gray-100 text-gray-600'
                         }`}>
                         {ann.category}
                       </span>
-                      <h5 className="font-bold text-gray-800 group-hover:text-indigo-600 transition-colors line-clamp-1">{ann.title}</h5>
+                      <h5 className="font-black text-xl text-gray-800 group-hover:text-indigo-600 transition-colors line-clamp-1 tracking-tight">{ann.title}</h5>
                     </div>
-                    <span className="text-[10px] text-gray-400">{ann.date}</span>
+                    <span className="text-xs font-bold text-gray-400">{ann.date}</span>
                   </div>
-                  <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{ann.content}</p>
+                  <p className="text-base text-gray-500 line-clamp-2 leading-relaxed font-medium opacity-80">{ann.content}</p>
                 </motion.div>
               ))
             )}
@@ -256,14 +258,14 @@ function ActionButton({ icon, label, sub, color, onClick }: any) {
   return (
     <button
       onClick={onClick}
-      className="premium-card p-7 flex flex-col gap-4 items-start text-left border-none shadow-sm hover:shadow-md h-full w-full"
+      className="premium-card p-10 flex flex-col gap-5 items-start text-left border-none shadow-md hover:shadow-lg h-full w-full transition-all hover:-translate-y-1"
     >
-      <div className={`p-4 rounded-2xl shrink-0 ${color}`}>
+      <div className={`p-5 rounded-[2rem] shrink-0 ${color} shadow-sm`}>
         {icon}
       </div>
-      <div className="flex flex-col gap-1">
-        <h4 className="font-black text-gray-800 text-2xl tracking-tight leading-tight break-keep">{label}</h4>
-        <p className="text-xs text-gray-400 leading-tight opacity-70 font-medium">{sub}</p>
+      <div className="flex flex-col gap-2">
+        <h4 className="font-black text-gray-800 text-3xl tracking-tight leading-none break-keep">{label}</h4>
+        <p className="text-sm text-gray-400 leading-tight opacity-80 font-semibold">{sub}</p>
       </div>
     </button>
   );
