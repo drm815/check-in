@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Html5QrcodeScanner } from "html5-qrcode";
+import { Html5QrcodeScanner, Html5Qrcode } from "html5-qrcode";
 import { ChevronLeft, Camera, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -10,7 +10,7 @@ export default function ScanPage() {
     const [scanResult, setScanResult] = useState<string | null>(null);
     const [status, setStatus] = useState<"idle" | "scanning" | "success" | "error">("idle");
     const [currentStatus, setCurrentStatus] = useState<"away" | "school" | "home">("away");
-    const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+    const scannerRef = useRef<Html5Qrcode | null>(null);
 
     useEffect(() => {
         const fetchCurrentStatus = async () => {
@@ -47,17 +47,29 @@ export default function ScanPage() {
 
     useEffect(() => {
         if (status === "scanning") {
-            scannerRef.current = new Html5QrcodeScanner(
-                "reader",
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                false
-            );
-            scannerRef.current.render(onScanSuccess, onScanFailure);
+            const html5QrCode = new Html5Qrcode("reader");
+            scannerRef.current = html5QrCode;
+
+            html5QrCode.start(
+                { facingMode: "environment" },
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 }
+                },
+                onScanSuccess,
+                onScanFailure
+            ).catch(err => {
+                console.error("Scanner start error", err);
+                setStatus("idle");
+                alert("카메라를 시작할 수 없습니다. 권한을 확인해 주세요.");
+            });
         }
 
         return () => {
-            if (scannerRef.current) {
-                scannerRef.current.clear().catch(error => console.error("Failed to clear scanner", error));
+            if (scannerRef.current && scannerRef.current.isScanning) {
+                scannerRef.current.stop().then(() => {
+                    console.log("Scanner stopped");
+                }).catch(err => console.error("Failed to stop scanner", err));
             }
         };
     }, [status]);
@@ -97,8 +109,8 @@ export default function ScanPage() {
             setStatus("idle");
         }
 
-        if (scannerRef.current) {
-            scannerRef.current.clear();
+        if (scannerRef.current && scannerRef.current.isScanning) {
+            scannerRef.current.stop();
         }
     }
 

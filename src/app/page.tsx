@@ -128,7 +128,7 @@ export default function Home() {
         </div>
 
         {/* Status Card */}
-        <div className="px-6">
+        <div className="px-[20%]">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
