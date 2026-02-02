@@ -9,7 +9,41 @@ import { motion } from "framer-motion";
 export default function ScanPage() {
     const [scanResult, setScanResult] = useState<string | null>(null);
     const [status, setStatus] = useState<"idle" | "scanning" | "success" | "error">("idle");
+    const [currentStatus, setCurrentStatus] = useState<"away" | "school" | "home">("away");
     const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+
+    useEffect(() => {
+        const fetchCurrentStatus = async () => {
+            const studentId = sessionStorage.getItem("student_id");
+            if (!studentId) return;
+
+            try {
+                const res = await fetch(`/api/admin/attendance?v=${Date.now()}`);
+                if (res.ok) {
+                    const allAtt = await res.json();
+                    const today = new Date().toISOString().split('T')[0];
+                    const studentRecords = allAtt.filter((r: any) => {
+                        const rId = (r.studentid || r["학번"] || "").toString().trim();
+                        const rDate = new Date(r.timestamp || r["시각"]).toISOString().split('T')[0];
+                        return rId === studentId && rDate === today;
+                    });
+
+                    if (studentRecords.length > 0) {
+                        studentRecords.sort((a: any, b: any) =>
+                            new Date(b.timestamp || b["시각"]).getTime() - new Date(a.timestamp || a["시각"]).getTime()
+                        );
+                        const type = (studentRecords[0].type || studentRecords[0]["유형"] || "").toString().trim();
+                        setCurrentStatus(type === "하교" ? "home" : "school");
+                    } else {
+                        setCurrentStatus("away");
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        fetchCurrentStatus();
+    }, []);
 
     useEffect(() => {
         if (status === "scanning") {
@@ -35,6 +69,8 @@ export default function ScanPage() {
         const studentId = sessionStorage.getItem("student_id");
         const studentName = sessionStorage.getItem("student_name");
 
+        const scanType = currentStatus === "school" ? "하교" : "등교";
+
         try {
             const response = await fetch("/api/attendance", {
                 method: "POST",
@@ -43,7 +79,7 @@ export default function ScanPage() {
                     studentId: studentId,
                     studentName: studentName,
                     scannedId: decodedText,
-                    type: "등교"
+                    type: scanType
                 }),
             });
 
@@ -127,7 +163,7 @@ export default function ScanPage() {
                         </div>
                         <div>
                             <h3 className="text-2xl font-bold text-green-400">인식 성공!</h3>
-                            <p className="text-slate-300 mt-2">정상적으로 등교 처리가 완료되었습니다.</p>
+                            <p className="text-slate-300 mt-2">정상적으로 {currentStatus === "school" ? "하교" : "등교"} 처리가 완료되었습니다.</p>
                             <div className="mt-6 p-4 bg-white/5 rounded-2xl border border-white/10 uppercase font-mono tracking-widest">
                                 {scanResult}
                             </div>
