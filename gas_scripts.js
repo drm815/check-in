@@ -40,14 +40,27 @@ function getAttendance() {
 
     var data = sheet.getDataRange().getValues();
     var headers = data.shift();
+
+    // Mapping for English and Korean headers to standard keys
+    var keyMap = {
+        "timestamp": "timestamp", "시각": "timestamp", "타임스탬프": "timestamp",
+        "reportid": "reportid", "신고id": "reportid", "신고 id": "reportid",
+        "studentid": "studentid", "학번": "studentid", "학생id": "studentid",
+        "name": "name", "이름": "name",
+        "type": "type", "유형": "type", "구분": "type",
+        "status": "status", "상태": "status", "승인여부": "status",
+        "reason": "reason", "사유": "reason", "비고": "reason"
+    };
+
     var records = data.map(function (row) {
         var obj = {};
         headers.forEach(function (header, j) {
-            var key = header.toString().toLowerCase().replace(/\s/g, "");
-            obj[key] = row[j];
+            var rawHeader = header.toString().trim().toLowerCase().replace(/\s/g, "");
+            var standardKey = keyMap[rawHeader] || rawHeader;
+            obj[standardKey] = row[j];
         });
         return obj;
-    });
+    }).filter(function (r) { return r.timestamp && r.timestamp !== ""; });
 
     return ContentService.createTextOutput(JSON.stringify(records))
         .setMimeType(ContentService.MimeType.JSON);
@@ -59,9 +72,24 @@ function updateReportStatus(id, status) {
     if (!sheet) return ContentService.createTextOutput(JSON.stringify({ error: "No sheet" })).setMimeType(ContentService.MimeType.JSON);
 
     var data = sheet.getDataRange().getValues();
+    var headers = data[0].map(function (h) { return h.toString().toLowerCase().replace(/\s/g, ""); });
+    var idIdx = -1;
+    var statusIdx = -1;
+
+    for (var j = 0; j < headers.length; j++) {
+        if (headers[j] === "reportid" || headers[j] === "신고id") idIdx = j;
+        if (headers[j] === "status" || headers[j] === "상태") statusIdx = j;
+    }
+
+    if (idIdx === -1 || statusIdx === -1) {
+        // Fallback to absolute positions if headers not found
+        idIdx = 1;
+        statusIdx = 5;
+    }
+
     for (var i = 1; i < data.length; i++) {
-        if (data[i][1].toString().trim() === id.toString().trim()) {
-            sheet.getRange(i + 1, 6).setValue(status);
+        if (data[i][idIdx].toString().trim() === id.toString().trim()) {
+            sheet.getRange(i + 1, statusIdx + 1).setValue(status);
             return ContentService.createTextOutput(JSON.stringify({ result: "success" })).setMimeType(ContentService.MimeType.JSON);
         }
     }
@@ -75,12 +103,26 @@ function getReport(id) {
 
     var data = sheet.getDataRange().getValues();
     var headers = data.shift();
+
+    var keyMap = {
+        "timestamp": "timestamp", "시각": "timestamp",
+        "reportid": "reportid", "신고id": "reportid",
+        "studentid": "studentid", "학번": "studentid",
+        "name": "name", "이름": "name",
+        "type": "type", "유형": "type",
+        "status": "status", "상태": "status",
+        "reason": "reason", "사유": "reason"
+    };
+
     var report = null;
     for (var i = 0; i < data.length; i++) {
+        // Check 2nd column (index 1) which is Report ID by default
         if (data[i][1].toString().trim() === id.toString().trim()) {
             report = {};
             headers.forEach(function (header, j) {
-                report[header.toString().toLowerCase().replace(/\s/g, "")] = data[i][j];
+                var rawHeader = header.toString().trim().toLowerCase().replace(/\s/g, "");
+                var standardKey = keyMap[rawHeader] || rawHeader;
+                report[standardKey] = data[i][j];
             });
             break;
         }
@@ -102,7 +144,7 @@ function getStudents() {
     var headers = data[0].map(function (h) { return h.toString().trim(); });
     var passIdx = -1;
     for (var i = 0; i < headers.length; i++) {
-        if (headers[i].toLowerCase() === "password") {
+        if (headers[i].toLowerCase() === "password" || headers[i] === "비밀번호") {
             passIdx = i;
             break;
         }
@@ -115,13 +157,16 @@ function getStudents() {
 
         var obj = {};
         headers.forEach(function (header, j) {
-            var key = header.toLowerCase();
+            var raw = header.toLowerCase().replace(/\s/g, "");
+            var key = raw === "id" || raw === "학번" ? "id" :
+                raw === "name" || raw === "이름" ? "name" :
+                    raw === "parentemail" || raw === "학부모이메일" ? "parentemail" :
+                        raw === "password" || raw === "비밀번호" ? "password" : raw;
             var val = row[j];
             if (key === "id") val = val.toString().trim();
             obj[key] = val;
         });
 
-        // Default password logic: if column missing or cell empty, use ID
         if (passIdx === -1 || !row[passIdx] || row[passIdx] === "") {
             obj.password = obj.id;
         } else {
@@ -137,7 +182,6 @@ function getStudents() {
 function setup() {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
 
-    // 1. Students Sheet
     var studentSheet = ss.getSheetByName("Students");
     if (!studentSheet) {
         studentSheet = ss.insertSheet("Students");
@@ -146,18 +190,16 @@ function setup() {
     } else {
         var data = studentSheet.getDataRange().getValues();
         var headers = data[0].map(function (h) { return h.toString().toLowerCase(); });
-        if (headers.indexOf("password") === -1) {
+        if (headers.indexOf("password") === -1 && headers.indexOf("비밀번호") === -1) {
             studentSheet.getRange(1, headers.length + 1).setValue("Password");
         }
     }
 
-    // 2. Attendance Sheet
     if (!ss.getSheetByName("Attendance")) {
         var attendSheet = ss.insertSheet("Attendance");
         attendSheet.appendRow(["Timestamp", "Report ID", "Student ID", "Name", "Type", "Status", "Reason"]);
     }
 
-    // 3. Topics Sheet
     if (!ss.getSheetByName("Topics")) {
         var topicSheet = ss.insertSheet("Topics");
         topicSheet.appendRow(["Topic"]);
@@ -216,6 +258,7 @@ function changePassword(studentId, newPassword) {
     var data = sheet.getDataRange().getValues();
     var headers = data[0].map(function (h) { return h.toString().toLowerCase(); });
     var passIdx = headers.indexOf("password");
+    if (passIdx === -1) passIdx = headers.indexOf("비밀번호");
 
     if (passIdx === -1) {
         sheet.getRange(1, headers.length + 1).setValue("Password");
@@ -241,7 +284,7 @@ function getTopics() {
         sheet.appendRow(["Topic"]);
         sheet.appendRow(["수업 시간 활동"]);
         sheet.appendRow(["청소 및 봉사"]);
-        sheet.appendRow(["자율 활동"]);
+        topicSheet.appendRow(["자율 활동"]);
     }
 
     var data = sheet.getDataRange().getValues();
