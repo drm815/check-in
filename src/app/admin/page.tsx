@@ -15,7 +15,9 @@ import {
     Settings,
     Loader2,
     RefreshCw,
-    X
+    X,
+    QrCode,
+    Printer
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -218,16 +220,24 @@ export default function AdminDashboard() {
                             <FileSpreadsheet size={16} className="text-emerald-600" />
                             {activeTab === 'attendance' ? '등하교 기록' : activeTab === 'reports' ? '미출결 신고' : '공지사항 관리'}
                         </h3>
-                        {process.env.NEXT_PUBLIC_SHEET_URL && (
-                            <a
-                                href={process.env.NEXT_PUBLIC_SHEET_URL}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs font-semibold text-indigo-600 flex items-center gap-1 bg-white px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm"
+                        <div className="flex gap-2">
+                            <Link
+                                href="/admin/qr"
+                                className="text-xs font-semibold text-rose-600 flex items-center gap-1 bg-white px-3 py-1.5 rounded-lg border border-rose-100 shadow-sm hover:bg-rose-50 transition-colors"
                             >
-                                <Download size={14} /> Google Sheets 열기
-                            </a>
-                        )}
+                                <Printer size={14} /> QR코드 인쇄하기
+                            </Link>
+                            {process.env.NEXT_PUBLIC_SHEET_URL && (
+                                <a
+                                    href={process.env.NEXT_PUBLIC_SHEET_URL}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs font-semibold text-indigo-600 flex items-center gap-1 bg-white px-3 py-1.5 rounded-lg border border-indigo-100 shadow-sm hover:bg-indigo-50 transition-colors"
+                                >
+                                    <Download size={14} /> Google Sheets 열기
+                                </a>
+                            )}
+                        </div>
                     </div>
 
                     {activeTab === 'announcements' ? (
