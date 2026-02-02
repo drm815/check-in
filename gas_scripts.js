@@ -94,6 +94,7 @@ function doPost(e) {
 
         // Announcements Management
         if (data.action === "addAnnouncement") return addAnnouncement(data);
+        if (data.action === "updateAnnouncement") return updateAnnouncement(data);
         if (data.action === "deleteAnnouncement") return deleteAnnouncement(data.id);
 
         var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -242,6 +243,28 @@ function addAnnouncement(data) {
     var date = data.date || Utilities.formatDate(new Date(), "GMT+9", "yyyy-MM-dd");
     sheet.appendRow([id, date, data.category, data.title, data.content]);
     return jsonResponse({ result: "success" });
+}
+
+function updateAnnouncement(data) {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("Announcements");
+    var values = sheet.getDataRange().getValues();
+    var headers = values[0].map(function (h) { return h.toString().toLowerCase().trim(); });
+
+    var idIdx = headers.indexOf("id");
+    var categoryIdx = headers.indexOf("category");
+    var titleIdx = headers.indexOf("title");
+    var contentIdx = headers.indexOf("content");
+
+    for (var i = 1; i < values.length; i++) {
+        if (values[i][idIdx].toString() === data.id.toString()) {
+            if (categoryIdx !== -1) sheet.getRange(i + 1, categoryIdx + 1).setValue(data.category);
+            if (titleIdx !== -1) sheet.getRange(i + 1, titleIdx + 1).setValue(data.title);
+            if (contentIdx !== -1) sheet.getRange(i + 1, contentIdx + 1).setValue(data.content);
+            return jsonResponse({ result: "success" });
+        }
+    }
+    return jsonResponse({ result: "error", message: "Announcement not found" });
 }
 
 function deleteAnnouncement(id) {

@@ -31,6 +31,7 @@ export default function AdminDashboard() {
 
     // Form state for new announcement
     const [showAnnForm, setShowAnnForm] = useState(false);
+    const [editingAnnId, setEditingAnnId] = useState<string | null>(null);
     const [newAnn, setNewAnn] = useState({ title: "", content: "", category: "공지" });
     const router = useRouter();
 
@@ -70,14 +71,16 @@ export default function AdminDashboard() {
     const handleAddAnn = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            const action = editingAnnId ? "updateAnnouncement" : "addAnnouncement";
             const res = await fetch("/api/announcements", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...newAnn, action: "addAnnouncement" })
+                body: JSON.stringify({ ...newAnn, action, id: editingAnnId })
             });
             if (res.ok) {
                 setNewAnn({ title: "", content: "", category: "공지" });
                 setShowAnnForm(false);
+                setEditingAnnId(null);
                 setRefreshKey(prev => prev + 1);
             }
         } catch (err) {
@@ -232,10 +235,16 @@ export default function AdminDashboard() {
                             <div className="flex justify-between items-center mb-2">
                                 <h4 className="font-bold text-sm text-gray-500">전체 공지 내역</h4>
                                 <button
-                                    onClick={() => setShowAnnForm(!showAnnForm)}
-                                    className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors"
+                                    onClick={() => {
+                                        if (showAnnForm) {
+                                            setEditingAnnId(null);
+                                            setNewAnn({ title: "", content: "", category: "공지" });
+                                        }
+                                        setShowAnnForm(!showAnnForm);
+                                    }}
+                                    className="text-sm font-bold bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition-colors flex items-center gap-2"
                                 >
-                                    {showAnnForm ? "취소" : "새 공지 등록"}
+                                    {showAnnForm ? "취소하기" : "새 공지 등록"}
                                 </button>
                             </div>
 
@@ -273,29 +282,45 @@ export default function AdminDashboard() {
                                 </form>
                             )}
 
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 {announcements.length === 0 ? (
-                                    <p className="text-center py-8 text-gray-400 text-sm">등록된 공지가 없습니다.</p>
+                                    <p className="text-center py-12 text-gray-400 text-sm">등록된 공지가 없습니다.</p>
                                 ) : (
                                     announcements.map((ann) => (
-                                        <div key={ann.id} className="p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors flex justify-between items-start">
-                                            <div className="flex flex-col gap-1">
+                                        <div
+                                            key={ann.id}
+                                            className={`p-5 border rounded-2xl transition-all flex justify-between items-start group cursor-pointer ${editingAnnId === ann.id ? 'border-indigo-600 bg-indigo-50/30' : 'border-gray-100 hover:bg-gray-50'
+                                                }`}
+                                            onClick={() => {
+                                                setEditingAnnId(ann.id);
+                                                setNewAnn({ title: ann.title, content: ann.content, category: ann.category });
+                                                setShowAnnForm(true);
+                                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                                            }}
+                                        >
+                                            <div className="flex flex-col gap-2">
                                                 <div className="flex items-center gap-2">
-                                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${ann.category === '일정' ? 'bg-blue-50 text-blue-600' :
-                                                        ann.category === '행사' ? 'bg-purple-50 text-purple-600' : 'bg-gray-100 text-gray-600'
+                                                    <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold ${ann.category === '일정' ? 'bg-blue-100 text-blue-700' :
+                                                        ann.category === '행사' ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-700'
                                                         }`}>
                                                         {ann.category}
                                                     </span>
-                                                    <h5 className="font-bold text-gray-800">{ann.title}</h5>
+                                                    <h5 className="font-bold text-gray-900 text-lg">{ann.title}</h5>
                                                 </div>
-                                                <p className="text-sm text-gray-500 whitespace-pre-wrap">{ann.content}</p>
-                                                <span className="text-[10px] text-gray-400">{ann.date}</span>
+                                                <p className="text-gray-600 whitespace-pre-wrap leading-relaxed">{ann.content}</p>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="text-xs text-gray-400 font-medium">{ann.date}</span>
+                                                    <span className="text-[10px] text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">클릭하여 수정하기</span>
+                                                </div>
                                             </div>
                                             <button
-                                                onClick={() => handleDeleteAnn(ann.id)}
-                                                className="p-2 text-gray-300 hover:text-red-500 transition-colors"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleDeleteAnn(ann.id);
+                                                }}
+                                                className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
                                             >
-                                                <X size={16} />
+                                                <X size={20} />
                                             </button>
                                         </div>
                                     ))
