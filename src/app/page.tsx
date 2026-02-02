@@ -96,7 +96,7 @@ export default function Home() {
   });
 
   return (
-    <main className="flex-1 flex flex-col max-w-lg mx-auto w-full px-16 py-16 gap-12 overflow-y-auto bg-[#F8FAFC]">
+    <main className="flex-1 flex flex-col w-full px-[12%] pt-[8rem] pb-[10rem] gap-12 overflow-y-auto bg-[#F8FAFC]">
       {/* Header */}
       <div className="flex justify-between items-center animate-fade px-2">
         <div className="flex flex-col gap-2">
@@ -118,7 +118,7 @@ export default function Home() {
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`relative overflow-hidden rounded-[1.8rem] px-[35px] py-10 shadow-sm border-2 transition-all duration-500 ${status === "school"
+          className={`relative overflow-hidden rounded-[1.2rem] px-[35px] py-10 shadow-sm border-2 transition-all duration-500 ${status === "school"
             ? "bg-[#FFF1F2] text-[#9F1239] border-[#FFE4E6]"
             : "bg-[#F0F9FF] text-[#075985] border-[#E0F2FE]"
             }`}
@@ -127,37 +127,36 @@ export default function Home() {
           <div className={`absolute top-[-10%] right-[-5%] w-48 h-48 rounded-full blur-3xl ${status === 'school' ? 'bg-rose-400/10' : 'bg-sky-400/10'
             }`}></div>
 
-          <div className="relative z-10 flex flex-col gap-6">
-            <div className="flex justify-between items-center">
-              <div className="flex flex-col gap-0.5">
-                <span className={`text-[10px] font-bold uppercase tracking-[0.1em] ${status === 'school' ? 'text-rose-500/70' : 'text-sky-500/70'
-                  }`}>Current Status</span>
-                <h3 className="text-xl font-black leading-tight break-keep">
+          <div className="relative z-10 flex flex-col gap-8">
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <span className={`text-[10px] font-black uppercase tracking-[0.2em] opacity-60`}>Current Status</span>
+                <h3 className="text-3xl font-black leading-none break-keep">
                   {status === "school" ? "등교 완료" : "미등교 상태"}
                 </h3>
               </div>
-              <div className={`p-2.5 rounded-2xl shrink-0 ${status === "school" ? "bg-white text-rose-500" : "bg-white text-sky-500"
+              <div className={`w-fit p-3 rounded-2xl ${status === "school" ? "bg-white/80 text-rose-500" : "bg-white/80 text-sky-500"
                 }`}>
-                {status === "school" ? <CheckCircle2 size={22} strokeWidth={3} /> : <Clock size={22} strokeWidth={3} />}
+                {status === "school" ? <CheckCircle2 size={28} strokeWidth={3} /> : <Clock size={28} strokeWidth={3} />}
               </div>
             </div>
 
             <div className={`h-px w-full ${status === 'school' ? 'bg-rose-200/50' : 'bg-sky-200/50'}`}></div>
 
-            <div className="flex justify-between items-end">
-              <div className="flex flex-col gap-1.5">
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-2">
                 <p className={`text-[10px] font-bold ${status === 'school' ? 'text-rose-400' : 'text-sky-400'
                   }`}>활동 시각 정보</p>
-                <div className="flex items-center gap-1.5 w-fit">
-                  <div className={`w-2 h-2 rounded-full ${status === 'school' ? 'bg-rose-400' : 'bg-sky-400'} animate-pulse`}></div>
-                  <span className="text-sm font-extrabold tracking-tight">{timeString}</span>
+                <div className="flex items-center gap-2 w-fit">
+                  <div className={`w-2.5 h-2.5 rounded-full ${status === 'school' ? 'bg-rose-400' : 'bg-sky-400'} animate-pulse`}></div>
+                  <span className="text-lg font-black tracking-tight">{timeString}</span>
                 </div>
               </div>
               {scanTime && (
-                <div className="text-right">
-                  <p className={`text-[10px] font-bold mb-0.5 ${status === 'school' ? 'text-rose-400' : 'text-sky-400'
+                <div className="flex flex-col gap-1">
+                  <p className={`text-[10px] font-bold ${status === 'school' ? 'text-rose-400' : 'text-sky-400'
                     }`}>최종 스캔</p>
-                  <p className="text-lg font-black">{scanTime}</p>
+                  <p className="text-2xl font-black">{scanTime}</p>
                 </div>
               )}
             </div>
