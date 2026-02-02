@@ -22,6 +22,7 @@ export default function Home() {
   const [status, setStatus] = useState<"away" | "school">("away");
   const [currentTime, setCurrentTime] = useState(new Date());
   const [studentName, setStudentName] = useState("");
+  const [announcements, setAnnouncements] = useState<any[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -33,6 +34,20 @@ export default function Home() {
 
     const name = sessionStorage.getItem("student_name") || "";
     setStudentName(name);
+
+    // Fetch announcements
+    const fetchAnn = async () => {
+      try {
+        const res = await fetch("/api/announcements");
+        if (res.ok) {
+          const data = await res.json();
+          setAnnouncements(data);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchAnn();
 
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
@@ -130,9 +145,42 @@ export default function Home() {
         </Link>
       </div>
 
-      <div className="flex flex-col gap-3 mt-4">
-        <h3 className="text-lg font-bold">최근 활동</h3>
-        <p className="text-sm text-gray-400 text-center py-8">최근 활동 내역이 없습니다.</p>
+      <div className="flex flex-col gap-4 mt-4 pb-8">
+        <h3 className="text-lg font-bold flex items-center justify-between">
+          중요 공지 및 일정
+          <span className="text-[10px] text-indigo-500 font-normal border border-indigo-100 px-2 py-0.5 rounded-full">New</span>
+        </h3>
+        <div className="flex flex-col gap-3">
+          {announcements.length === 0 ? (
+            <div className="premium-card p-8 flex flex-col items-center gap-2 text-center bg-gray-50/50 border-dashed border-2">
+              <Bell className="text-gray-300" size={32} />
+              <p className="text-sm text-gray-400">현재 등록된 주요 일정이 없습니다.</p>
+            </div>
+          ) : (
+            announcements.map((ann, i) => (
+              <motion.div
+                key={ann.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
+                className="premium-card p-4 flex flex-col gap-2 hover:border-indigo-100 transition-colors cursor-pointer group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${ann.category === '일정' ? 'bg-blue-50 text-blue-600' :
+                        ann.category === '행사' ? 'bg-purple-50 text-purple-600' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                      {ann.category}
+                    </span>
+                    <h5 className="font-bold text-gray-800 group-hover:text-indigo-600 transition-colors line-clamp-1">{ann.title}</h5>
+                  </div>
+                  <span className="text-[10px] text-gray-400">{ann.date}</span>
+                </div>
+                <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">{ann.content}</p>
+              </motion.div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Bottom Nav Placeholder */}

@@ -11,6 +11,7 @@ function doGet(e) {
     if (action === "updateReportStatus") return updateReportStatus(e.parameter.id, e.parameter.status);
     if (action === "getTopics") return getTopics();
     if (action === "getAttendance") return jsonResponse(getAttendanceData());
+    if (action === "getAnnouncements") return jsonResponse(getAnnouncementsData());
     return ContentService.createTextOutput("Invalid Action").setMimeType(ContentService.MimeType.TEXT);
 }
 
@@ -50,32 +51,19 @@ function getAttendanceData() {
         });
 
         // HEURISTIC: Fix data if it's shifted or mismatched
-        // If studentid looks like a random ID (report ID)
         if (obj.studentid && obj.studentid.length < 12 && isNaN(Number(obj.studentid))) {
-            // Case 1: studentid contains the random reportId
-            // And usually name contains studentId, type contains Name, status contains Type, reason contains Status, extra contains Reason
-            if (obj.status && (obj.status.indexOf("10") === 0 || obj.status.indexOf("20") === 0 || obj.status.indexOf("30") === 0)) {
-                // Wait, if status is studentId? Let's use more obvious clues.
-            }
-
-            // If the row has more columns than headers, or columns are just wrong
-            // Let's look for specific values
             var rowStr = row.join("|");
             if (rowStr.indexOf("PENDING") > -1 || rowStr.indexOf("CONFIRMED") > -1 || rowStr.indexOf("대기") > -1) {
-                // If the "reportid" link is broken, we must make sure the object has the correct fields
-                // Let's re-scan the whole row for things that look like what they are
                 row.forEach(function (val) {
                     var v = val.toString().trim();
                     if (v === "PENDING" || v === "CONFIRMED" || v === "REJECTED" || v === "대기") obj.status = v;
                     else if (v === "결석" || v === "지각" || v === "조퇴" || v === "기타") obj.type = v;
                     else if (v.length === 5 && !isNaN(Number(v))) obj.studentid = v;
                     else if (v.length === 9 && isNaN(Number(v)) && v.match(/[a-z0-9]/)) obj.reportid = v;
-                    // Note: this is a bit aggressive but helps with shifted data
                 });
             }
         }
 
-        // Final fallback: if reportid is missing but studentid looks like reportid
         if (!obj.reportid && obj.studentid && obj.studentid.length === 9 && isNaN(Number(obj.studentid))) {
             obj.reportid = obj.studentid;
         }
@@ -104,6 +92,10 @@ function doPost(e) {
         if (data.action === "uploadPhotos") return handlePhotoUpload(data);
         if (data.action === "changePassword") return changePassword(data.studentId, data.newPassword);
 
+        // Announcements Management
+        if (data.action === "addAnnouncement") return addAnnouncement(data);
+        if (data.action === "deleteAnnouncement") return deleteAnnouncement(data.id);
+
         var ss = SpreadsheetApp.getActiveSpreadsheet();
         var sheet = ss.getSheetByName("Attendance");
         if (!sheet) {
@@ -113,7 +105,6 @@ function doPost(e) {
 
         var headerRow = sheet.getRange(1, 1, 1, Math.max(sheet.getLastColumn(), 7)).getValues()[0];
 
-        // Define our required headers and map them to columns
         var requiredHeaders = {
             "timestamp": ["Timestamp", "시각", "타임스탬프"],
             "reportId": ["Report ID", "신고 ID", "신고ID", "ReportID"],
@@ -135,12 +126,10 @@ function doPost(e) {
                     break;
                 }
             }
-            // If not found, add it to the first empty column
             if (!found) {
                 var newCol = sheet.getLastColumn() + 1;
                 sheet.getRange(1, newCol).setValue(requiredHeaders[key][0]);
                 colMap[key] = newCol;
-                // Update local headerRow for next keys
                 headerRow[newCol - 1] = requiredHeaders[key][0];
             }
         }
@@ -172,7 +161,6 @@ function updateReportStatus(id, status) {
     var data = sheet.getDataRange().getValues();
     var headers = data[0].map(function (h) { return h.toString().toLowerCase().replace(/\s/g, ""); });
 
-    // Find Report ID column or Student ID column
     var ridIdx = -1;
     var sidIdx = -1;
     var statusIdx = -1;
@@ -184,7 +172,7 @@ function updateReportStatus(id, status) {
         if (h.indexOf("status") > -1 || h.indexOf("상태") > -1) statusIdx = j;
     }
 
-    if (statusIdx === -1) statusIdx = 5; // Default to Status col if metadata fails
+    if (statusIdx === -1) statusIdx = 5;
 
     for (var i = 1; i < data.length; i++) {
         var target = id.toString().trim();
@@ -222,6 +210,53 @@ function getStudents() {
     return jsonResponse(students);
 }
 
+/**
+ * Announcement Management
+ */
+function getAnnouncementsData() {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("Announcements");
+    if (!sheet) return [];
+
+    var data = sheet.getDataRange().getValues();
+    var headers = data.shift().map(function (h) { return h.toString().toLowerCase().trim(); });
+
+    return data.map(function (row, i) {
+        var obj = { rowIdx: i + 2 };
+        headers.forEach(function (h, j) {
+            obj[h] = row[j];
+        });
+        return obj;
+    }).reverse(); // Latest first
+}
+
+function addAnnouncement(data) {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("Announcements");
+    if (!sheet) {
+        sheet = ss.insertSheet("Announcements");
+        sheet.appendRow(["ID", "Date", "Category", "Title", "Content"]);
+    }
+
+    var id = Math.random().toString(36).substr(2, 9);
+    var date = data.date || Utilities.formatDate(new Date(), "GMT+9", "yyyy-MM-dd");
+    sheet.appendRow([id, date, data.category, data.title, data.content]);
+    return jsonResponse({ result: "success" });
+}
+
+function deleteAnnouncement(id) {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("Announcements");
+    var data = sheet.getDataRange().getValues();
+    for (var i = 1; i < data.length; i++) {
+        if (data[i][0].toString() === id.toString()) {
+            sheet.deleteRow(i + 1);
+            return jsonResponse({ result: "success" });
+        }
+    }
+    return jsonResponse({ result: "error" });
+}
+
 function setup() {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
 
@@ -232,7 +267,6 @@ function setup() {
         attendSheet = ss.insertSheet("Attendance");
         attendSheet.appendRow(headers);
     } else {
-        // Overwrite headers to be sure
         attendSheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     }
 
@@ -240,6 +274,13 @@ function setup() {
     if (!ss.getSheetByName("Students")) {
         var studentSheet = ss.insertSheet("Students");
         studentSheet.appendRow(["ID", "Name", "ParentEmail", "Password"]);
+    }
+
+    // Announcements Sheet
+    if (!ss.getSheetByName("Announcements")) {
+        var annSheet = ss.insertSheet("Announcements");
+        annSheet.appendRow(["ID", "Date", "Category", "Title", "Content"]);
+        annSheet.appendRow([Math.random().toString(36).substr(2, 9), Utilities.formatDate(new Date(), "GMT+9", "yyyy-MM-dd"), "공지", "K-Mates 서비스 시작", "스마트 출결 관리 서비스를 시작합니다."]);
     }
 
     SpreadsheetApp.flush();

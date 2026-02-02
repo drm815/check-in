@@ -14,18 +14,24 @@ import {
     LayoutDashboard,
     Settings,
     Loader2,
-    RefreshCw
+    RefreshCw,
+    X
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
 export default function AdminDashboard() {
-    const [activeTab, setActiveTab] = useState("attendance");
+    const [activeTab, setActiveTab] = useState<"attendance" | "reports" | "announcements">("attendance");
     const [loading, setLoading] = useState(true);
     const [students, setStudents] = useState<any[]>([]);
     const [attendance, setAttendance] = useState<any[]>([]);
+    const [announcements, setAnnouncements] = useState<any[]>([]);
     const [refreshKey, setRefreshKey] = useState(0);
+
+    // Form state for new announcement
+    const [showAnnForm, setShowAnnForm] = useState(false);
+    const [newAnn, setNewAnn] = useState({ title: "", content: "", category: "공지" });
     const router = useRouter();
 
     const fetchData = async () => {
@@ -47,10 +53,51 @@ export default function AdminDashboard() {
                 console.log("Attendance Data Received:", aData); // Debugging
                 setAttendance(aData);
             }
+
+            // Fetch announcements
+            const annRes = await fetch(`/api/announcements?v=${ts}`);
+            if (annRes.ok) {
+                const annData = await annRes.json();
+                setAnnouncements(annData);
+            }
         } catch (err) {
             console.error("Failed to fetch admin data", err);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleAddAnn = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const res = await fetch("/api/announcements", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ...newAnn, action: "addAnnouncement" })
+            });
+            if (res.ok) {
+                setNewAnn({ title: "", content: "", category: "공지" });
+                setShowAnnForm(false);
+                setRefreshKey(prev => prev + 1);
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleDeleteAnn = async (id: string) => {
+        if (!confirm("정말 삭제하시겠습니까?")) return;
+        try {
+            const res = await fetch("/api/announcements", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "deleteAnnouncement", id })
+            });
+            if (res.ok) {
+                setRefreshKey(prev => prev + 1);
+            }
+        } catch (err) {
+            console.error(err);
         }
     };
 
@@ -157,6 +204,7 @@ export default function AdminDashboard() {
             <div className="px-6 flex gap-6 border-b border-gray-200 bg-white">
                 <TabButton active={activeTab === 'attendance'} onClick={() => setActiveTab('attendance')} label="출결 기록" />
                 <TabButton active={activeTab === 'reports'} onClick={() => setActiveTab('reports')} label="지각/결석 신고" />
+                <TabButton active={activeTab === 'announcements'} onClick={() => setActiveTab('announcements')} label="공지 관리" />
             </div>
 
             {/* Content Area */}
@@ -165,7 +213,7 @@ export default function AdminDashboard() {
                     <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                         <h3 className="font-bold text-gray-700 flex items-center gap-2">
                             <FileSpreadsheet size={16} className="text-emerald-600" />
-                            {activeTab === 'attendance' ? '등하교 기록' : activeTab === 'reports' ? '미출결 신고' : '모든 기록'}
+                            {activeTab === 'attendance' ? '등하교 기록' : activeTab === 'reports' ? '미출결 신고' : '공지사항 관리'}
                         </h3>
                         {process.env.NEXT_PUBLIC_SHEET_URL && (
                             <a
@@ -179,37 +227,114 @@ export default function AdminDashboard() {
                         )}
                     </div>
 
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm">
-                            <thead>
-                                <tr className="bg-gray-50 text-gray-500 uppercase text-[10px] tracking-wider font-bold">
-                                    <th className="px-6 py-4">시각</th>
-                                    <th className="px-6 py-4">학번</th>
-                                    <th className="px-6 py-4">이름</th>
-                                    <th className="px-6 py-4">유형</th>
-                                    <th className="px-6 py-4">상태/사유</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-100">
-                                {filteredRecords().map((record, i) => (
-                                    <TableRow
-                                        key={i}
-                                        time={new Date(getVal(record, ["timestamp", "시각", "타임스탬프"])).toLocaleString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
-                                        id={getVal(record, ["studentid", "학번"])}
-                                        name={getVal(record, ["name", "이름"])}
-                                        type={getVal(record, ["type", "유형"])}
-                                        status={getVal(record, ["status", "상태"])}
-                                        reason={getVal(record, ["reason", "사유"])}
+                    {activeTab === 'announcements' ? (
+                        <div className="p-4 flex flex-col gap-4">
+                            <div className="flex justify-between items-center mb-2">
+                                <h4 className="font-bold text-sm text-gray-500">전체 공지 내역</h4>
+                                <button
+                                    onClick={() => setShowAnnForm(!showAnnForm)}
+                                    className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors"
+                                >
+                                    {showAnnForm ? "취소" : "새 공지 등록"}
+                                </button>
+                            </div>
+
+                            {showAnnForm && (
+                                <form onSubmit={handleAddAnn} className="bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col gap-3 mb-4">
+                                    <div className="grid grid-cols-4 gap-3">
+                                        <select
+                                            value={newAnn.category}
+                                            onChange={(e) => setNewAnn({ ...newAnn, category: e.target.value })}
+                                            className="px-3 py-2 rounded-lg border border-gray-200 text-sm"
+                                        >
+                                            <option value="공지">공지</option>
+                                            <option value="일정">일정</option>
+                                            <option value="행사">행사</option>
+                                        </select>
+                                        <input
+                                            type="text"
+                                            placeholder="제목을 입력하세요"
+                                            value={newAnn.title}
+                                            onChange={(e) => setNewAnn({ ...newAnn, title: e.target.value })}
+                                            className="col-span-3 px-3 py-2 rounded-lg border border-gray-200 text-sm"
+                                            required
+                                        />
+                                    </div>
+                                    <textarea
+                                        placeholder="상세 내용을 입력하세요"
+                                        value={newAnn.content}
+                                        onChange={(e) => setNewAnn({ ...newAnn, content: e.target.value })}
+                                        className="px-3 py-2 rounded-lg border border-gray-200 text-sm h-24"
+                                        required
                                     />
-                                ))}
-                                {filteredRecords().length === 0 && (
-                                    <tr>
-                                        <td colSpan={5} className="px-6 py-10 text-center text-gray-400">데이터가 없습니다.</td>
-                                    </tr>
+                                    <button type="submit" className="bg-indigo-600 text-white py-2 rounded-lg font-bold text-sm">
+                                        등록하기
+                                    </button>
+                                </form>
+                            )}
+
+                            <div className="space-y-3">
+                                {announcements.length === 0 ? (
+                                    <p className="text-center py-8 text-gray-400 text-sm">등록된 공지가 없습니다.</p>
+                                ) : (
+                                    announcements.map((ann) => (
+                                        <div key={ann.id} className="p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors flex justify-between items-start">
+                                            <div className="flex flex-col gap-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${ann.category === '일정' ? 'bg-blue-50 text-blue-600' :
+                                                        ann.category === '행사' ? 'bg-purple-50 text-purple-600' : 'bg-gray-100 text-gray-600'
+                                                        }`}>
+                                                        {ann.category}
+                                                    </span>
+                                                    <h5 className="font-bold text-gray-800">{ann.title}</h5>
+                                                </div>
+                                                <p className="text-sm text-gray-500 whitespace-pre-wrap">{ann.content}</p>
+                                                <span className="text-[10px] text-gray-400">{ann.date}</span>
+                                            </div>
+                                            <button
+                                                onClick={() => handleDeleteAnn(ann.id)}
+                                                className="p-2 text-gray-300 hover:text-red-500 transition-colors"
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                        </div>
+                                    ))
                                 )}
-                            </tbody>
-                        </table>
-                    </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead>
+                                    <tr className="bg-gray-50 text-gray-500 uppercase text-[10px] tracking-wider font-bold">
+                                        <th className="px-6 py-4">시각</th>
+                                        <th className="px-6 py-4">학번</th>
+                                        <th className="px-6 py-4">이름</th>
+                                        <th className="px-6 py-4">유형</th>
+                                        <th className="px-6 py-4">상태/사유</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {filteredRecords().map((record, i) => (
+                                        <TableRow
+                                            key={i}
+                                            time={new Date(getVal(record, ["timestamp", "시각", "타임스탬프"])).toLocaleString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+                                            id={getVal(record, ["studentid", "학번"])}
+                                            name={getVal(record, ["name", "이름"])}
+                                            type={getVal(record, ["type", "유형"])}
+                                            status={getVal(record, ["status", "상태"])}
+                                            reason={getVal(record, ["reason", "사유"])}
+                                        />
+                                    ))}
+                                    {filteredRecords().length === 0 && (
+                                        <tr>
+                                            <td colSpan={5} className="px-6 py-10 text-center text-gray-400">데이터가 없습니다.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
                 </div>
             </div>
 
