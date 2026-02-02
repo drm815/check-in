@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { User, LogIn, ShieldCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 
 export default function LoginPage() {
@@ -103,10 +104,22 @@ export default function LoginPage() {
                 </button>
             </motion.form>
 
-            <p className="text-center text-sm text-gray-400 mt-8">
-                학번을 모르거나 로그인이 안 되나요? <br />
-                <span className="text-indigo-600 font-bold underline">선생님께 문의하기</span>
-            </p>
+            <div className="text-center mt-8 flex flex-col gap-4">
+                <p className="text-sm text-gray-400">
+                    학번을 모르거나 로그인이 안 되나요? <br />
+                    <span className="text-indigo-600 font-bold underline">선생님께 문의하기</span>
+                </p>
+
+                <div className="h-px bg-gray-100 w-12 mx-auto my-2"></div>
+
+                <Link
+                    href="/admin"
+                    className="text-gray-400 text-xs hover:text-indigo-600 transition-colors inline-flex items-center justify-center gap-1"
+                >
+                    <ShieldCheck size={12} />
+                    교사용 관리 페이지 접속
+                </Link>
+            </div>
         </main>
     );
 }

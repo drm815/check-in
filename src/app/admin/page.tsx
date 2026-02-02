@@ -92,7 +92,10 @@ export default function AdminDashboard() {
                 return t !== "" && t !== "등교" && t !== "하교";
             });
         }
-        return attendance;
+        return attendance.filter(r => {
+            const t = getVal(r, ["type", "유형"]);
+            return t !== "" && t !== "등교" && t !== "하교";
+        });
     };
 
     if (loading) {
@@ -136,7 +139,6 @@ export default function AdminDashboard() {
             <div className="px-6 flex gap-6 border-b border-gray-200 bg-white">
                 <TabButton active={activeTab === 'attendance'} onClick={() => setActiveTab('attendance')} label="출결 기록" />
                 <TabButton active={activeTab === 'reports'} onClick={() => setActiveTab('reports')} label="지각/결석 신고" />
-                <TabButton active={activeTab === 'surveys'} onClick={() => setActiveTab('surveys')} label="전체 내역" />
             </div>
 
             {/* Content Area */}

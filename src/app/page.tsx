@@ -128,14 +128,6 @@ export default function Home() {
             color="bg-orange-50 text-orange-600"
           />
         </Link>
-        <Link href="/admin" className="contents">
-          <ActionButton
-            icon={<Bell size={28} />}
-            label="교사 대시보드"
-            sub="데이터 관리"
-            color="bg-emerald-50 text-emerald-600"
-          />
-        </Link>
       </div>
 
       <div className="flex flex-col gap-3 mt-4">
