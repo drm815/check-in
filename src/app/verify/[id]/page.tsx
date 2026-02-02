@@ -97,7 +97,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
                 <div className="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg mb-2">
                     <ShieldCheck size={32} />
                 </div>
-                <h1 className="text-xl font-bold">K-Mates 학부모 확인</h1>
+                <h1 className="text-xl font-bold">Class-Mates 학부모 확인</h1>
             </div>
 
             <motion.div

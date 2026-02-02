@@ -89,7 +89,7 @@ export default function QRPrintPage() {
                         </div>
 
                         <p className="text-[8px] text-gray-300 text-center uppercase tracking-widest font-mono">
-                            K-Mates QR Check-in
+                            Class-Mates QR Check-in
                         </p>
                     </div>
                 ))}

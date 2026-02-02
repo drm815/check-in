@@ -61,7 +61,7 @@ export default function LoginPage() {
                     <ShieldCheck size={40} />
                 </div>
                 <div className="text-center">
-                    <h1 className="text-3xl font-extrabold tracking-tight">K-Mates</h1>
+                    <h1 className="text-3xl font-extrabold tracking-tight">Class-Mates</h1>
                     <p className="text-gray-400 mt-1">우리 반 스마트 학교생활</p>
                 </div>
             </div>
@@ -70,27 +70,27 @@ export default function LoginPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 onSubmit={handleLogin}
-                className="flex flex-col gap-4"
+                className="flex flex-col gap-5 max-w-sm mx-auto w-full"
             >
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700 ml-1">학번 (예: 20301)</label>
+                <div className="flex items-center gap-4">
+                    <label className="text-xs font-black text-gray-500 uppercase tracking-wider w-12 shrink-0">학번</label>
                     <input
                         type="text"
                         required
-                        placeholder="학번을 입력하세요"
-                        className="w-full p-4 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                        placeholder="학번 (예: 20301)"
+                        className="flex-1 p-4 rounded-2xl bg-white border-2 border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm text-gray-900"
                         value={studentId}
                         onChange={(e) => setStudentId(e.target.value)}
                     />
                 </div>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-bold text-gray-700 ml-1">비밀번호 (초기: 학번 5자리)</label>
+                <div className="flex items-center gap-4">
+                    <label className="text-xs font-black text-gray-500 uppercase tracking-wider w-12 shrink-0">비번</label>
                     <input
                         type="password"
                         required
-                        placeholder="비밀번호를 입력하세요"
-                        className="w-full p-4 rounded-2xl bg-gray-50 border-none focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                        placeholder="비밀번호"
+                        className="flex-1 p-4 rounded-2xl bg-white border-2 border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm text-gray-900"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
@@ -98,17 +98,13 @@ export default function LoginPage() {
 
                 <button
                     disabled={isLoading}
-                    className="btn-primary mt-4 py-4 text-lg shadow-lg shadow-indigo-200"
+                    className="w-1/2 self-center bg-indigo-600 text-white font-black py-4 rounded-2xl mt-4 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2"
                 >
                     {isLoading ? "로그인 중..." : "시작하기"}
                 </button>
             </motion.form>
 
-            <div className="text-center mt-8 flex flex-col gap-4">
-                <p className="text-sm text-gray-400">
-                    학번을 모르거나 로그인이 안 되나요? <br />
-                    <span className="text-indigo-600 font-bold underline">선생님께 문의하기</span>
-                </p>
+            <div className="text-center mt-12 flex flex-col gap-4">
 
                 <div className="h-px bg-gray-100 w-12 mx-auto my-2"></div>
 
