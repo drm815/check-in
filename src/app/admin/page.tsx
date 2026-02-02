@@ -54,19 +54,30 @@ export default function AdminDashboard() {
 
     // Derived data
     const totalStudents = students.length;
-    const todayArrivals = attendance.filter(r => String(r.type || "").trim() === "등교").length;
-    const pendingReports = attendance.filter(r => String(r.status || "").trim().toUpperCase() === "PENDING").length;
+
+    // Helper to get value from record regardless of key casing or Korean/English
+    const getVal = (r: any, keys: string[]) => {
+        for (const key of keys) {
+            if (r[key] !== undefined) return String(r[key]).trim();
+        }
+        return "";
+    };
+
+    const todayArrivals = attendance.filter(r => getVal(r, ["type", "유형"]) === "등교").length;
+    const pendingReports = attendance.filter(r => {
+        const s = getVal(r, ["status", "상태"]).toUpperCase();
+        return s === "PENDING" || s === "대기" || (getVal(r, ["type", "유형"]) !== "등교" && getVal(r, ["type", "유형"]) !== "하교" && s === "");
+    }).length;
 
     const filteredRecords = () => {
         if (activeTab === "attendance") {
             return attendance.filter(r => {
-                const t = String(r.type || "").trim();
+                const t = getVal(r, ["type", "유형"]);
                 return t === "등교" || t === "하교";
             });
         } else if (activeTab === "reports") {
             return attendance.filter(r => {
-                const t = String(r.type || "").trim();
-                // Show anything that is not normal attendance
+                const t = getVal(r, ["type", "유형"]);
                 return t !== "" && t !== "등교" && t !== "하교";
             });
         }
@@ -146,12 +157,12 @@ export default function AdminDashboard() {
                                 {filteredRecords().map((record, i) => (
                                     <TableRow
                                         key={i}
-                                        time={new Date(record.timestamp).toLocaleString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
-                                        id={record.studentid}
-                                        name={record.name}
-                                        type={record.type}
-                                        status={record.status}
-                                        reason={record.reason}
+                                        time={new Date(getVal(record, ["timestamp", "시각", "타임스탬프"])).toLocaleString('ko-KR', { hour: '2-digit', minute: '2-digit' })}
+                                        id={getVal(record, ["studentid", "학번"])}
+                                        name={getVal(record, ["name", "이름"])}
+                                        type={getVal(record, ["type", "유형"])}
+                                        status={getVal(record, ["status", "상태"])}
+                                        reason={getVal(record, ["reason", "사유"])}
                                     />
                                 ))}
                                 {filteredRecords().length === 0 && (
