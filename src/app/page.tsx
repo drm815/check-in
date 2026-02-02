@@ -13,7 +13,8 @@ import {
   Calendar,
   ChevronRight,
   Camera,
-  User
+  User,
+  Settings
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
@@ -110,7 +111,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] flex justify-center">
-      <main className="w-full max-w-[480px] flex flex-col px-10 py-16 gap-12 overflow-y-auto min-h-screen">
+      <main className="w-full max-w-[480px] flex flex-col px-[12%] py-16 gap-12 overflow-y-auto min-h-screen">
         {/* Header */}
         <div className="flex justify-between items-center animate-fade px-2">
           <div className="flex flex-col gap-2">
@@ -128,7 +129,7 @@ export default function Home() {
         </div>
 
         {/* Status Card */}
-        <div className="px-[20%]">
+        <div className="w-full">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -192,6 +193,14 @@ export default function Home() {
               label="지각/결석 신고"
               sub="학부모 자동 확인"
               color="bg-orange-50 text-orange-600"
+            />
+          </Link>
+          <Link href="/settings/password" className="contents">
+            <ActionButton
+              icon={<Settings size={28} />}
+              label="비번 수정"
+              sub="개인정보 보안"
+              color="bg-emerald-50 text-emerald-600"
             />
           </Link>
         </div>
