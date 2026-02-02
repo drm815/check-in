@@ -96,29 +96,29 @@ export default function Home() {
   });
 
   return (
-    <main className="flex-1 flex flex-col px-14 py-20 gap-12 overflow-y-auto bg-[#F8FAFC]">
+    <main className="flex-1 flex flex-col px-[7rem] py-[10rem] gap-16 overflow-y-auto bg-[#F8FAFC]">
       {/* Header */}
-      <div className="flex justify-between items-center animate-fade px-2">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-gray-400 text-[11px] font-black uppercase tracking-[0.25em] mb-2">{dateString}</h2>
-          <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-black text-gray-900 leading-[1.3] break-keep">
+      <div className="flex justify-between items-center animate-fade px-4">
+        <div className="flex flex-col gap-2">
+          <h2 className="text-gray-400 text-[12px] font-black uppercase tracking-[0.3em] mb-3">{dateString}</h2>
+          <div className="flex items-center gap-2 text-wrap">
+            <h1 className="text-4xl font-black text-gray-900 leading-[1.4] break-keep">
               {studentName ? `${studentName}님,` : "안녕하세요!"} <br />
-              좋은 하루예요! 👋
+              멋진 하루 보내세요! 🌟
             </h1>
           </div>
         </div>
-        <div className="w-14 h-14 rounded-[1.2rem] bg-white shadow-sm border border-gray-100 flex items-center justify-center text-indigo-600 shrink-0">
-          <User size={30} />
+        <div className="w-16 h-16 rounded-[1.5rem] bg-white shadow-sm border border-gray-100 flex items-center justify-center text-indigo-600 shrink-0">
+          <User size={34} />
         </div>
       </div>
 
       {/* Status Card */}
       <div className="px-0">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`relative overflow-hidden rounded-[2.8rem] px-12 py-10 shadow-sm border-2 transition-all duration-500 ${status === "school"
+          className={`relative overflow-hidden rounded-[3.5rem] px-[4.25rem] py-14 shadow-sm border-2 transition-all duration-500 ${status === "school"
             ? "bg-[#FFF1F2] text-[#9F1239] border-[#FFE4E6]"
             : "bg-[#F0F9FF] text-[#075985] border-[#E0F2FE]"
             }`}
