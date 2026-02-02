@@ -96,20 +96,20 @@ export default function Home() {
   });
 
   return (
-    <main className="flex-1 flex flex-col px-[7rem] py-[10rem] gap-16 overflow-y-auto bg-[#F8FAFC]">
+    <main className="flex-1 flex flex-col px-[15%] pt-[20rem] pb-[15rem] gap-16 overflow-y-auto bg-[#F8FAFC]">
       {/* Header */}
-      <div className="flex justify-between items-center animate-fade px-4">
+      <div className="flex justify-between items-center animate-fade px-2">
         <div className="flex flex-col gap-2">
-          <h2 className="text-gray-400 text-[12px] font-black uppercase tracking-[0.3em] mb-3">{dateString}</h2>
+          <h2 className="text-gray-400 text-[11px] font-black uppercase tracking-[0.3em] mb-2">{dateString}</h2>
           <div className="flex items-center gap-2 text-wrap">
-            <h1 className="text-4xl font-black text-gray-900 leading-[1.4] break-keep">
+            <h1 className="text-2xl font-black text-gray-900 leading-[1.3] break-keep">
               {studentName ? `${studentName}님,` : "안녕하세요!"} <br />
               멋진 하루 보내세요! 🌟
             </h1>
           </div>
         </div>
-        <div className="w-16 h-16 rounded-[1.5rem] bg-white shadow-sm border border-gray-100 flex items-center justify-center text-indigo-600 shrink-0">
-          <User size={34} />
+        <div className="w-14 h-14 rounded-[1.2rem] bg-white shadow-sm border border-gray-100 flex items-center justify-center text-indigo-600 shrink-0">
+          <User size={30} />
         </div>
       </div>
 
@@ -118,7 +118,7 @@ export default function Home() {
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          className={`relative overflow-hidden rounded-[3.5rem] px-[4.25rem] py-14 shadow-sm border-2 transition-all duration-500 ${status === "school"
+          className={`relative overflow-hidden rounded-[1.8rem] px-[17px] py-10 shadow-sm border-2 transition-all duration-500 ${status === "school"
             ? "bg-[#FFF1F2] text-[#9F1239] border-[#FFE4E6]"
             : "bg-[#F0F9FF] text-[#075985] border-[#E0F2FE]"
             }`}
@@ -136,9 +136,9 @@ export default function Home() {
                   {status === "school" ? "등교 완료" : "미등교 상태"}
                 </h3>
               </div>
-              <div className={`p-3 rounded-2xl shrink-0 ${status === "school" ? "bg-rose-100 text-rose-500" : "bg-sky-100 text-sky-500"
+              <div className={`p-3 rounded-2xl shrink-0 ${status === "school" ? "bg-white text-rose-500" : "bg-white text-sky-500"
                 }`}>
-                {status === "school" ? <CheckCircle2 size={30} strokeWidth={2.5} /> : <Clock size={30} strokeWidth={2.5} />}
+                {status === "school" ? <CheckCircle2 size={24} strokeWidth={3} /> : <Clock size={24} strokeWidth={3} />}
               </div>
             </div>
 
