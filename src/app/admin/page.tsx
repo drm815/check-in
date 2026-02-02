@@ -13,7 +13,8 @@ import {
     Clock,
     LayoutDashboard,
     Settings,
-    Loader2
+    Loader2,
+    RefreshCw
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -24,7 +25,34 @@ export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [students, setStudents] = useState<any[]>([]);
     const [attendance, setAttendance] = useState<any[]>([]);
+    const [refreshKey, setRefreshKey] = useState(0);
     const router = useRouter();
+
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            // Add timestamp to bust any cache
+            const ts = Date.now();
+            const [studentsRes, attendanceRes] = await Promise.all([
+                fetch(`/api/students?v=${ts}`),
+                fetch(`/api/admin/attendance?v=${ts}`)
+            ]);
+
+            if (studentsRes.ok) {
+                const sData = await studentsRes.json();
+                setStudents(sData);
+            }
+            if (attendanceRes.ok) {
+                const aData = await attendanceRes.json();
+                console.log("Attendance Data Received:", aData); // Debugging
+                setAttendance(aData);
+            }
+        } catch (err) {
+            console.error("Failed to fetch admin data", err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         const adminLogin = sessionStorage.getItem("admin_login");
@@ -32,25 +60,8 @@ export default function AdminDashboard() {
             router.push("/admin/login");
             return;
         }
-
-        async function fetchData() {
-            setLoading(true);
-            try {
-                const [studentsRes, attendanceRes] = await Promise.all([
-                    fetch("/api/students"),
-                    fetch("/api/admin/attendance")
-                ]);
-
-                if (studentsRes.ok) setStudents(await studentsRes.json());
-                if (attendanceRes.ok) setAttendance(await attendanceRes.json());
-            } catch (err) {
-                console.error("Failed to fetch admin data", err);
-            } finally {
-                setLoading(false);
-            }
-        }
         fetchData();
-    }, []);
+    }, [refreshKey]);
 
     // Derived data
     const totalStudents = students.length;
@@ -103,6 +114,12 @@ export default function AdminDashboard() {
                     <h1 className="font-bold text-lg">교사용 관리 페이지</h1>
                 </div>
                 <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setRefreshKey(prev => prev + 1)}
+                        className={`p-2 text-gray-400 hover:bg-gray-100 rounded-lg transition-transform ${loading ? 'animate-spin text-indigo-600' : ''}`}
+                    >
+                        <RefreshCw size={20} />
+                    </button>
                     <button className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg"><Search size={20} /></button>
                     <button className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg"><Settings size={20} /></button>
                 </div>

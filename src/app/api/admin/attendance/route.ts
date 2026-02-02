@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
     try {
         const gasUrl = process.env.GOOGLE_SHEET_WEB_APP_URL;
