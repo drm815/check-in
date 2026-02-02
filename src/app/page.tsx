@@ -96,35 +96,31 @@ export default function Home() {
   });
 
   return (
-    <main className="flex-1 flex flex-col p-6 gap-6 overflow-y-auto bg-[#F8FAFC]">
+    <main className="flex-1 flex flex-col px-7 py-9 gap-9 overflow-y-auto bg-[#F8FAFC]">
       {/* Header */}
-      <div className="flex justify-between items-center animate-fade">
-        <div className="flex flex-col">
-          <h2 className="text-gray-500 text-sm font-medium">{dateString}</h2>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              안녕하세요{studentName ? `, ${studentName} 학생` : ""}! 👋
+      <div className="flex justify-between items-center animate-fade px-0.5">
+        <div className="flex flex-col gap-0.5">
+          <h2 className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] mb-1">{dateString}</h2>
+          <div className="flex items-center gap-2 text-wrap">
+            <h1 className="text-2xl font-black text-gray-900 leading-[1.2] break-keep">
+              {studentName ? `${studentName}님,` : "안녕하세요!"} <br />
+              좋은 하루예요! 👋
             </h1>
-            {studentName && (
-              <Link href="/settings/password" className="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full hover:bg-slate-200 transition-colors">
-                비밀번호 변경
-              </Link>
-            )}
           </div>
         </div>
-        <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
-          <User size={24} />
+        <div className="w-12 h-12 rounded-2xl bg-white shadow-sm border border-gray-100 flex items-center justify-center text-indigo-600 shrink-0">
+          <User size={26} />
         </div>
       </div>
 
       {/* Status Card */}
-      <div className="px-2">
+      <div className="px-0">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className={`relative overflow-hidden rounded-[2.5rem] px-10 py-8 shadow-sm border transition-shadow duration-500 ${status === "school"
-              ? "bg-[#FFF1F2] text-[#9F1239] border-[#FECDD3]"
-              : "bg-[#F0F9FF] text-[#075985] border-[#BAE6FD]"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`relative overflow-hidden rounded-[2.2rem] px-6 py-8 shadow-sm border-2 transition-all duration-500 ${status === "school"
+            ? "bg-[#FFF1F2] text-[#9F1239] border-[#FFE4E6]"
+            : "bg-[#F0F9FF] text-[#075985] border-[#E0F2FE]"
             }`}
         >
           {/* Subtle Background Elements */}
@@ -136,13 +132,13 @@ export default function Home() {
               <div className="flex flex-col gap-0.5">
                 <span className={`text-[10px] font-bold uppercase tracking-[0.1em] ${status === 'school' ? 'text-rose-500/70' : 'text-sky-500/70'
                   }`}>Current Status</span>
-                <h3 className="text-3xl font-black tracking-tight">
+                <h3 className="text-2xl font-black tracking-tight leading-tight break-keep">
                   {status === "school" ? "등교 완료" : "미등교 상태"}
                 </h3>
               </div>
-              <div className={`p-3 rounded-2xl ${status === "school" ? "bg-rose-100 text-rose-500" : "bg-sky-100 text-sky-500"
+              <div className={`p-3 rounded-2xl shrink-0 ${status === "school" ? "bg-rose-100 text-rose-500" : "bg-sky-100 text-sky-500"
                 }`}>
-                {status === "school" ? <CheckCircle2 size={32} strokeWidth={2.5} /> : <Clock size={32} strokeWidth={2.5} />}
+                {status === "school" ? <CheckCircle2 size={30} strokeWidth={2.5} /> : <Clock size={30} strokeWidth={2.5} />}
               </div>
             </div>
 
@@ -251,12 +247,12 @@ function ActionButton({ icon, label, sub, color, onClick }: any) {
       onClick={onClick}
       className="premium-card p-5 flex flex-col gap-3 items-start text-left border-none shadow-sm hover:shadow-md"
     >
-      <div className={`p-3 rounded-2xl ${color}`}>
+      <div className={`p-3 rounded-2xl shrink-0 ${color}`}>
         {icon}
       </div>
-      <div>
-        <h4 className="font-bold text-gray-800">{label}</h4>
-        <p className="text-xs text-gray-500">{sub}</p>
+      <div className="flex flex-col gap-0.5">
+        <h4 className="font-bold text-gray-800 leading-tight break-keep">{label}</h4>
+        <p className="text-[10px] text-gray-500 leading-tight opacity-80">{sub}</p>
       </div>
     </button>
   );
