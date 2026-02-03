@@ -136,7 +136,9 @@ function doPost(e) {
         }
 
         var nextRow = sheet.getLastRow() + 1;
-        sheet.getRange(nextRow, colMap.timestamp).setValue(new Date());
+        var now = new Date();
+        var timeZone = ss.getSpreadsheetTimeZone();
+        sheet.getRange(nextRow, colMap.timestamp).setValue(Utilities.formatDate(now, timeZone, "yyyy-MM-dd HH:mm:ss"));
         sheet.getRange(nextRow, colMap.reportId).setValue(data.reportId || "");
         sheet.getRange(nextRow, colMap.studentId).setValue(data.studentId || "");
         sheet.getRange(nextRow, colMap.name).setValue(data.name || "");
@@ -303,7 +305,7 @@ function setup() {
     if (!ss.getSheetByName("Announcements")) {
         var annSheet = ss.insertSheet("Announcements");
         annSheet.appendRow(["ID", "Date", "Category", "Title", "Content"]);
-        annSheet.appendRow([Math.random().toString(36).substr(2, 9), Utilities.formatDate(new Date(), "GMT+9", "yyyy-MM-dd"), "공지", "K-Mates 서비스 시작", "스마트 출결 관리 서비스를 시작합니다."]);
+        annSheet.appendRow([Math.random().toString(36).substr(2, 9), Utilities.formatDate(new Date(), "GMT+9", "yyyy-MM-dd"), "공지", "Class-Mates 서비스 시작", "스마트 출결 관리 서비스를 시작합니다."]);
     }
 
     SpreadsheetApp.flush();
@@ -311,7 +313,7 @@ function setup() {
 }
 
 function handlePhotoUpload(data) {
-    var rootFolder = DriveApp.getFoldersByName("K-Mates_Uploads").hasNext() ? DriveApp.getFoldersByName("K-Mates_Uploads").next() : DriveApp.createFolder("K-Mates_Uploads");
+    var rootFolder = DriveApp.getFoldersByName("Class-Mates_Uploads").hasNext() ? DriveApp.getFoldersByName("Class-Mates_Uploads").next() : DriveApp.createFolder("Class-Mates_Uploads");
     var topicFolder = rootFolder.getFoldersByName(data.topic).hasNext() ? rootFolder.getFoldersByName(data.topic).next() : rootFolder.createFolder(data.topic);
     var today = Utilities.formatDate(new Date(), "GMT+9", "yyyy-MM-dd");
     data.images.forEach(function (img, index) {
@@ -348,7 +350,7 @@ function getTopics() {
 function sendParentNotification(parentEmail, studentName, reason, reportId) {
     var appUrl = "https://check-in-final.vercel.app";
     var verifyUrl = appUrl + "/verify/" + reportId;
-    var subject = "[K-Mates] " + studentName + " 학부모 확인 요청 (" + reason + ")";
+    var subject = "[Class-Mates] " + studentName + " 학부모 확인 요청 (" + reason + ")";
     var body = studentName + " 학생의 " + reason + " 신고가 접수되었습니다.\n\n" +
         "위 내용이 맞다면 아래 확인 링크를 클릭해 주세요:\n" + verifyUrl + "\n\n" +
         "* 본 메일은 학교 출결 시스템에서 자동 발송되었습니다.";
