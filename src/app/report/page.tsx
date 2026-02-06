@@ -53,7 +53,7 @@ export default function ReportPage() {
 
     if (isSuccess) {
         return (
-            <main className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-6 bg-white">
+            <main className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-6 bg-white h-screen">
                 <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
@@ -74,66 +74,70 @@ export default function ReportPage() {
     }
 
     return (
-        <main className="flex-1 flex flex-col bg-[#F8FAFC]">
-            <div className="p-6 flex items-center gap-4 bg-white border-bottom border-gray-100">
-                <Link href="/" className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
-                    <ChevronLeft size={24} />
-                </Link>
-                <h2 className="text-lg font-bold">결석 / 지각 신고</h2>
-            </div>
+        <main className="min-h-screen flex flex-col items-center bg-[#F8FAFC] p-4 pt-[80px] font-sans text-slate-900">
+            <div className="w-[90%] max-w-[400px] flex flex-col pb-12 gap-[60px] overflow-y-auto">
+                {/* Header */}
+                <div className="flex items-center gap-3 px-[30px]">
+                    <Link href="/" className="p-2.5 bg-white hover:bg-gray-50 rounded-2xl transition-all shadow-sm border border-gray-100 flex items-center justify-center">
+                        <ChevronLeft size={24} className="text-gray-700" />
+                    </Link>
+                    <h2 className="text-[28px] font-black text-gray-900 leading-none tracking-tight">결석 / 지각 신고</h2>
+                </div>
 
-            <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-6">
-                <section className="flex flex-col gap-3">
-                    <label className="text-sm font-semibold text-gray-500 ml-1">신고 유형</label>
-                    <div className="grid grid-cols-2 gap-3">
-                        {[
-                            { id: 'absence', label: '결석', icon: <AlertTriangle size={18} /> },
-                            { id: 'late', label: '지각', icon: <Clock size={18} /> },
-                            { id: 'leave', label: '조퇴', icon: <MapPin size={18} /> },
-                            { id: 'other', label: '기타', icon: <AlertTriangle size={18} /> }
-                        ].map((item) => (
-                            <button
-                                key={item.id}
-                                type="button"
-                                onClick={() => setType(item.id)}
-                                className={`p-4 rounded-2xl flex items-center justify-center gap-3 border-2 transition-all ${type === item.id
-                                    ? 'border-indigo-600 bg-indigo-50 text-indigo-700 font-bold'
-                                    : 'border-white bg-white text-gray-400'
-                                    }`}
-                            >
-                                {item.icon}
-                                {item.label}
-                            </button>
-                        ))}
+                <form onSubmit={handleSubmit} className="flex flex-col gap-10 px-[30px]">
+                    <section className="flex flex-col gap-4">
+                        <label className="text-[14px] font-[800] text-[#FF4D8D] uppercase tracking-widest ml-5 opacity-90">신고 유형 선택</label>
+                        <div className="grid grid-cols-2 gap-3">
+                            {[
+                                { id: 'absence', label: '결석', icon: <AlertTriangle size={20} /> },
+                                { id: 'late', label: '지각', icon: <Clock size={20} /> },
+                                { id: 'leave', label: '조퇴', icon: <MapPin size={20} /> },
+                                { id: 'other', label: '기타', icon: <AlertTriangle size={20} /> }
+                            ].map((item) => (
+                                <button
+                                    key={item.id}
+                                    type="button"
+                                    onClick={() => setType(item.id)}
+                                    className={`p-6 rounded-[2rem] flex flex-col items-center justify-center gap-3 border-2 transition-all shadow-sm ${type === item.id
+                                        ? 'border-[#FF4D8D] bg-pink-50/40 text-[#FF4D8D] font-black'
+                                        : 'border-white bg-white text-gray-400 font-bold hover:border-pink-100'
+                                        }`}
+                                >
+                                    {item.icon}
+                                    <span className="text-base tracking-tight">{item.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </section>
+
+                    <section className="flex flex-col gap-4">
+                        <label className="text-[14px] font-[800] text-[#FF4D8D] uppercase tracking-widest ml-5 opacity-90">상세 사유 입력</label>
+                        <textarea
+                            placeholder="사유를 입력해주세요 (예: 감기 몸살로 인한 병원 방문)"
+                            className="w-full pl-10 pr-8 py-8 rounded-[2.5rem] border-2 border-gray-100 bg-white shadow-sm h-48 resize-none focus:border-[#FF4D8D]/30 focus:ring-4 focus:ring-pink-500/5 outline-none text-[16px] text-gray-900 font-semibold placeholder-gray-300 leading-relaxed"
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                            required
+                        />
+                    </section>
+
+                    <div className="p-6 bg-orange-50 rounded-[2rem] border border-orange-100 shadow-sm">
+                        <p className="text-[13px] text-orange-700 leading-relaxed font-semibold">
+                            ⚠️ 신고를 완료하면 학부모님 이메일로 확인 링크가 전송됩니다. 부모님의 최종 확인이 필요합니다.
+                        </p>
                     </div>
-                </section>
 
-                <section className="flex flex-col gap-3">
-                    <label className="text-sm font-semibold text-gray-500 ml-1">사유 입력</label>
-                    <textarea
-                        placeholder="사유를 입력해주세요 (예: 감기 몸살로 인한 병원 방문)"
-                        className="w-full p-4 rounded-2xl border-none bg-white shadow-sm h-32 resize-none focus:ring-2 focus:ring-indigo-500 outline-none"
-                        value={reason}
-                        onChange={(e) => setReason(e.target.value)}
-                        required
-                    />
-                </section>
-
-                <section className="premium-card bg-orange-50 border-orange-100 p-4">
-                    <p className="text-xs text-orange-700 leading-relaxed">
-                        ⚠️ 신고를 완료하면 등록된 <strong>학부모님 이메일</strong>로 확인 링크가 포함된 메일이 발송됩니다.
-                        학부모님이 메일 내의 링크를 클릭하여 확인을 완료해야 최종 승인이 됩니다.
-                    </p>
-                </section>
-
-                <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="btn-primary mt-2 py-4 text-lg disabled:opacity-50 w-1/2 self-center"
-                >
-                    {isSubmitting ? "전송 중..." : "신고하기"}
-                </button>
-            </form>
+                    <div className="flex flex-col items-center mt-4 pb-12">
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className={`w-full h-[68px] bg-[#FFD600] text-[#191919] font-[900] rounded-[24px] transition-all flex items-center justify-center gap-3 text-xl active:scale-[0.98] shadow-[0_15px_35px_-10px_rgba(255,214,0,0.6)] ${isSubmitting ? 'opacity-70' : 'hover:scale-[1.02]'}`}
+                        >
+                            {isSubmitting ? "전송 중..." : "신고하기"}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </main>
     );
 }

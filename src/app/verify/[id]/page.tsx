@@ -92,7 +92,7 @@ export default function VerifyPage({ params }: { params: Promise<{ id: string }>
     }
 
     return (
-        <main className="flex-1 flex flex-col bg-slate-50 min-h-screen p-6">
+        <main className="flex-1 flex flex-col bg-slate-50 min-h-screen pt-[15vh] pb-6 px-6">
             <div className="flex flex-col items-center gap-2 mb-8 mt-12">
                 <div className="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-lg mb-2">
                     <ShieldCheck size={32} />

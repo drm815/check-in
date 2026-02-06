@@ -119,9 +119,9 @@ export default function ScanPage() {
     }
 
     return (
-        <main className="flex-1 flex flex-col bg-slate-900 text-white min-h-screen">
+        <main className="flex-1 flex flex-col bg-slate-900 text-white min-h-screen pt-[80px]">
             {/* Header */}
-            <div className="p-6 flex items-center justify-between">
+            <div className="pb-6 px-6 flex items-center justify-between">
                 <Link href="/" className="p-2 bg-white/10 rounded-xl">
                     <ChevronLeft size={24} />
                 </Link>

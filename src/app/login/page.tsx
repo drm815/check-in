@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { User, LogIn, ShieldCheck } from "lucide-react";
+import { User, LogIn, School } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -55,66 +55,76 @@ export default function LoginPage() {
     };
 
     return (
-        <main className="flex-1 flex flex-col p-8 justify-center bg-white">
-            <div className="flex flex-col items-center gap-4 mb-12">
-                <div className="w-20 h-20 bg-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-indigo-200">
-                    <ShieldCheck size={40} />
-                </div>
-                <div className="text-center">
-                    <h1 className="text-3xl font-extrabold tracking-tight">Class-Mates</h1>
-                    <p className="text-gray-400 mt-1">우리 반 스마트 학교생활</p>
-                </div>
-            </div>
-
-            <motion.form
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                onSubmit={handleLogin}
-                className="flex flex-col gap-5 max-w-sm mx-auto w-full"
-            >
-                <div className="flex items-center gap-4">
-                    <label className="text-xs font-black text-gray-500 uppercase tracking-wider w-12 shrink-0">학번</label>
-                    <input
-                        type="text"
-                        required
-                        placeholder="학번 (예: 20301)"
-                        className="flex-1 p-4 rounded-2xl bg-white border-2 border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm text-gray-900"
-                        value={studentId}
-                        onChange={(e) => setStudentId(e.target.value)}
-                    />
+        <main className="min-h-screen flex flex-col items-center justify-center bg-[#F8FAFC] p-4 font-sans">
+            <div className="w-[90%] max-w-[400px] flex flex-col items-center gap-10">
+                {/* Logo & Title */}
+                <div className="flex flex-col items-center gap-4 mt-5">
+                    <div className="w-20 h-20 bg-[#FF4D8D] rounded-[1.8rem] flex items-center justify-center text-white shadow-xl shadow-pink-100">
+                        <School size={44} />
+                    </div>
+                    <div className="text-center">
+                        <h1 className="text-[1.8rem] font-[800] tracking-tight text-gray-900 leading-tight">Class-Mates</h1>
+                        <p className="text-[#64748B] mt-1.5 font-medium text-sm">우리 반 스마트 학교생활</p>
+                    </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <label className="text-xs font-black text-gray-500 uppercase tracking-wider w-12 shrink-0">비번</label>
-                    <input
-                        type="password"
-                        required
-                        placeholder="비밀번호"
-                        className="flex-1 p-4 rounded-2xl bg-white border-2 border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all shadow-sm text-gray-900"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                </div>
-
-                <button
-                    disabled={isLoading}
-                    className="w-1/2 self-center bg-indigo-600 text-white font-black py-4 rounded-2xl mt-4 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2"
+                {/* Minimalist Login Form */}
+                <motion.form
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    onSubmit={handleLogin}
+                    className="w-full flex flex-col gap-8 px-[30px]"
                 >
-                    {isLoading ? "로그인 중..." : "시작하기"}
-                </button>
-            </motion.form>
+                    <div className="flex flex-col gap-5">
+                        <div className="space-y-2">
+                            <label className="text-[11px] font-[700] text-[#FF4D8D] uppercase tracking-widest ml-4 opacity-80">Student ID</label>
+                            <input
+                                type="text"
+                                required
+                                placeholder="학번을 입력해주세요"
+                                className="w-full h-[54px] pl-4 pr-4 rounded-[12px] bg-white border border-transparent focus:border-[#FF4D8D] focus:ring-4 focus:ring-pink-500/5 outline-none transition-all text-base text-gray-900 placeholder-gray-300 shadow-sm"
+                                value={studentId}
+                                onChange={(e) => setStudentId(e.target.value)}
+                            />
+                        </div>
 
-            <div className="text-center mt-12 flex flex-col gap-4">
+                        <div className="space-y-2">
+                            <label className="text-[11px] font-[700] text-[#FF4D8D] uppercase tracking-widest ml-4 opacity-80">Password</label>
+                            <input
+                                type="password"
+                                required
+                                placeholder="비밀번호를 입력해주세요"
+                                className="w-full h-[54px] pl-4 pr-4 rounded-[12px] bg-white border border-transparent focus:border-[#FF4D8D] focus:ring-4 focus:ring-pink-500/5 outline-none transition-all text-base text-gray-900 placeholder-gray-300 shadow-sm"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                        </div>
+                    </div>
 
-                <div className="h-px bg-gray-100 w-12 mx-auto my-2"></div>
+                    <div className="flex flex-col gap-6">
+                        <button
+                            disabled={isLoading}
+                            className="w-full h-[58px] bg-[#FFD600] text-[#191919] font-[800] rounded-[14px] hover:bg-[#FADA00] transition-all flex items-center justify-center gap-2 text-lg active:scale-[0.98] shadow-md shadow-yellow-200/50"
+                        >
+                            {isLoading ? "로그인 중..." : "로그인"}
+                        </button>
 
-                <Link
-                    href="/admin"
-                    className="text-gray-400 text-xs hover:text-indigo-600 transition-colors inline-flex items-center justify-center gap-1"
-                >
-                    <ShieldCheck size={12} />
-                    교사용 관리 페이지 접속
-                </Link>
+                        <div className="flex items-center justify-center">
+                            <button type="button" className="text-xs text-slate-400 hover:text-slate-600 font-semibold tracking-tight">사용자 가이드</button>
+                        </div>
+                    </div>
+                </motion.form>
+
+                {/* Admin Link at the Bottom */}
+                <div className="mt-4 mb-5">
+                    <Link
+                        href="/admin"
+                        className="px-5 py-2.5 bg-transparent border border-slate-200 rounded-full text-[#94A3B8] text-[0.9rem] font-medium hover:bg-slate-50 hover:text-slate-500 transition-all inline-flex items-center gap-2"
+                    >
+                        <School size={16} />
+                        교사 전용 접속
+                    </Link>
+                </div>
             </div>
         </main>
     );

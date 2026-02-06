@@ -47,7 +47,7 @@ export default function QRPrintPage() {
     if (loading) return <div className="p-8 text-center text-gray-500">학생 명단을 불러오는 중...</div>;
 
     return (
-        <main className="min-h-screen bg-gray-50 p-8 print:p-0 print:bg-white">
+        <main className="min-h-screen bg-gray-50 pt-[15vh] pb-8 px-8 print:p-0 print:bg-white">
             {/* UI Header - Hidden when printing */}
             <div className="max-w-4xl mx-auto mb-8 flex items-center justify-between print:hidden">
                 <div className="flex items-center gap-4">

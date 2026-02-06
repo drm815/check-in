@@ -85,65 +85,70 @@ export default function ChangePasswordPage() {
     }
 
     return (
-        <main className="flex-1 flex flex-col bg-[#F8FAFC] min-h-screen text-slate-900">
-            <div className="p-6 flex items-center gap-4 bg-white border-b border-gray-100">
-                <Link href="/" className="p-2 hover:bg-gray-100 rounded-xl transition-colors">
-                    <ChevronLeft size={24} />
-                </Link>
-                <h2 className="text-lg font-bold">비밀번호 변경</h2>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-6 flex flex-col gap-6 max-w-md mx-auto w-full">
-                <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl flex gap-3">
-                    <AlertCircle className="text-indigo-600 flex-shrink-0" size={20} />
-                    <p className="text-xs text-indigo-700 leading-relaxed">
-                        보안을 위해 초기 비밀번호(학번)를 <strong>숫자 4자리</strong>로 변경하는 것을 권장합니다.
-                    </p>
+        <main className="min-h-screen flex flex-col items-center bg-[#F8FAFC] p-4 pt-[80px] font-sans text-slate-900">
+            <div className="w-[90%] max-w-[400px] flex flex-col pb-12 gap-[60px] overflow-y-auto">
+                {/* Header */}
+                <div className="flex items-center gap-3 px-[30px]">
+                    <Link href="/" className="p-2.5 bg-white hover:bg-gray-50 rounded-2xl transition-all shadow-sm border border-gray-100 flex items-center justify-center">
+                        <ChevronLeft size={24} className="text-gray-700" />
+                    </Link>
+                    <h2 className="text-[28px] font-black text-gray-900 leading-none tracking-tight">비밀번호 변경</h2>
                 </div>
 
-                <section className="flex flex-col gap-4">
-                    <div className="space-y-2">
-                        <label className="text-sm font-semibold text-gray-500 ml-1">새 비밀번호 (숫자 4자리)</label>
-                        <input
-                            type="password"
-                            maxLength={4}
-                            required
-                            placeholder="****"
-                            className="w-full p-4 rounded-2xl bg-white border border-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-center text-2xl tracking-[1em]"
-                            value={newPassword}
-                            onChange={(e) => setNewPassword(e.target.value)}
-                        />
+                <form onSubmit={handleSubmit} className="flex flex-col gap-10 px-[30px]">
+                    <div className="bg-indigo-50 border border-indigo-100 p-6 rounded-[2rem] flex gap-4 items-start shadow-sm">
+                        <AlertCircle className="text-indigo-600 flex-shrink-0 mt-1" size={22} />
+                        <p className="text-[14px] text-indigo-700 leading-relaxed font-semibold">
+                            보안을 위해 초기 비밀번호를 <strong>숫자 4자리</strong>로 변경해 주세요.
+                        </p>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-sm font-semibold text-gray-500 ml-1">새 비밀번호 확인</label>
-                        <input
-                            type="password"
-                            maxLength={4}
-                            required
-                            placeholder="****"
-                            className="w-full p-4 rounded-2xl bg-white border border-gray-100 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-center text-2xl tracking-[1em]"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                        />
-                    </div>
-                </section>
+                    <div className="flex flex-col gap-8">
+                        <div className="space-y-3">
+                            <label className="text-[14px] font-[800] text-[#FF4D8D] uppercase tracking-widest ml-5 opacity-90">새 비밀번호</label>
+                            <input
+                                type="password"
+                                maxLength={4}
+                                required
+                                placeholder="숫자 4자리 입력"
+                                className="w-full h-[64px] rounded-2xl bg-white border-2 border-gray-100 focus:border-[#FF4D8D]/30 focus:ring-4 focus:ring-[#FF4D8D]/5 outline-none transition-all text-center text-2xl font-bold tracking-[0.8em] shadow-sm text-gray-900 placeholder:text-gray-200 placeholder:tracking-normal placeholder:text-base px-6"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                            />
+                        </div>
 
-                <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="btn-primary mt-4 py-4 text-lg disabled:bg-gray-400 flex items-center justify-center gap-2 shadow-lg shadow-indigo-100"
-                >
-                    {isSubmitting ? (
-                        <Loader2 className="animate-spin" size={20} />
-                    ) : (
-                        <>
-                            <Lock size={20} />
-                            비밀번호 변경하기
-                        </>
-                    )}
-                </button>
-            </form>
+                        <div className="space-y-3">
+                            <label className="text-[14px] font-[800] text-[#FF4D8D] uppercase tracking-widest ml-5 opacity-90">비밀번호 확인</label>
+                            <input
+                                type="password"
+                                maxLength={4}
+                                required
+                                placeholder="한 번 더 입력"
+                                className="w-full h-[64px] rounded-2xl bg-white border-2 border-gray-100 focus:border-[#FF4D8D]/30 focus:ring-4 focus:ring-[#FF4D8D]/5 outline-none transition-all text-center text-2xl font-bold tracking-[0.8em] shadow-sm text-gray-900 placeholder:text-gray-200 placeholder:tracking-normal placeholder:text-base px-6"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col items-center mt-2 pb-12">
+                        <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className={`w-full h-[68px] bg-[#FFD600] text-[#191919] font-[900] rounded-[24px] transition-all flex items-center justify-center gap-3 text-xl active:scale-[0.98] shadow-[0_15px_35px_-10px_rgba(255,214,0,0.6)] ${isSubmitting ? 'opacity-70' : 'hover:scale-[1.02]'}`}
+                        >
+                            {isSubmitting ? (
+                                <Loader2 className="animate-spin" size={26} />
+                            ) : (
+                                <>
+                                    <Lock size={24} />
+                                    비밀번호 변경하기
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </div>
         </main>
     );
 }

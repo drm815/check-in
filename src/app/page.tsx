@@ -110,32 +110,32 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      <main className="w-full max-w-[1200px] mx-auto flex flex-col px-10 py-16 gap-16 overflow-y-auto min-h-screen">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center pt-[80px]">
+      <main className="w-[90%] max-w-[400px] flex flex-col p-6 pb-12 gap-16 overflow-y-auto">
         {/* Header */}
         <div className="flex justify-between items-center animate-fade px-2">
           <div className="flex flex-col gap-2">
             <h2 className="text-gray-400 text-[11px] font-black uppercase tracking-[0.3em]">{dateString}</h2>
             <div className="flex items-center gap-2">
-              <h1 className="text-3xl font-black text-gray-900 leading-tight">
+              <h1 className="text-2xl font-black text-gray-900 leading-tight">
                 {studentName ? `${studentName}님,` : "안녕하세요!"} <br />
-                오늘도 기분 좋은 하루 되세요! ☀️
+                오늘도 좋은 하루 되세요! ☀️
               </h1>
             </div>
           </div>
         </div>
 
         {/* Status Card Section */}
-        <div className="w-full max-w-[700px] mx-auto">
+        <div className="w-full">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={`relative overflow-hidden rounded-[4rem] p-12 shadow-xl border-2 transition-all duration-300 flex flex-col items-center justify-center gap-8 ${status === "school" ? "bg-[#FFF1F2] border-[#FFE4E6] text-[#9F1239]" :
+            className={`relative overflow-hidden rounded-[4rem] p-8 shadow-xl border-2 transition-all duration-300 flex flex-col items-center justify-center gap-6 ${status === "school" ? "bg-[#FFF1F2] border-[#FFE4E6] text-[#9F1239]" :
               status === "home" ? "bg-emerald-50 border-emerald-100 text-emerald-700" :
                 "bg-[#F0F9FF] border-[#E0F2FE] text-[#075985]"
               }`}
           >
-            <div className="flex flex-col items-center gap-6">
+            <div className="flex flex-col items-center gap-4">
               <div className={`p-4 rounded-2xl shadow-sm ${status === "school" ? "bg-white text-rose-500" :
                 status === "home" ? "bg-white text-emerald-500" :
                   "bg-white text-sky-500"
@@ -145,67 +145,65 @@ export default function Home() {
                     <Clock size={32} strokeWidth={2.5} />}
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-base font-black uppercase tracking-[0.3em] opacity-60">
+                <span className="text-sm font-black uppercase tracking-[0.3em] opacity-60">
                   {status === "school" ? "In School" : status === "home" ? "Returned Home" : "Away"}
                 </span>
-                <h3 className="text-5xl font-black tracking-tight text-center leading-none">
+                <h3 className="text-4xl font-black tracking-tight text-center leading-none">
                   {status === "school" ? "등교 완료" : status === "home" ? "하교 완료" : "미등교 상태"}
                 </h3>
               </div>
             </div>
 
             {scanTime && (
-              <div className="mt-4 pt-6 border-t border-current border-dashed opacity-30 w-full flex flex-col items-center gap-2">
-                <span className="text-xs font-bold uppercase tracking-widest">Last Scanned At</span>
-                <span className="text-3xl font-black tracking-tighter">{scanTime}</span>
+              <div className="mt-2 pt-4 border-t border-current border-dashed opacity-30 w-full flex flex-col items-center gap-1">
+                <span className="text-[10px] font-bold uppercase tracking-widest">Last Scanned At</span>
+                <span className="text-2xl font-black tracking-tighter">{scanTime}</span>
               </div>
             )}
           </motion.div>
         </div>
 
-        {/* Action Grid */}
         {/* Action Grid Section */}
-        <div className="w-full max-w-[800px] mx-auto">
-          <div className="grid grid-cols-2 gap-8">
+        <div className="w-full">
+          <div className="grid grid-cols-2 gap-4">
             <Link href="/scan" className="contents">
               <ActionButton
-                icon={<QrCode size={40} />}
+                icon={<QrCode size={30} />}
                 label="출결 스캔"
-                sub="QR/NFC 태그 체크"
+                sub="체크하기"
                 color="bg-blue-50 text-blue-600"
               />
             </Link>
             <Link href="/upload" className="contents">
               <ActionButton
-                icon={<Camera size={40} />}
+                icon={<Camera size={30} />}
                 label="활동 기록"
-                sub="오늘의 사진 제출"
+                sub="사진 제출"
                 color="bg-purple-50 text-purple-600"
               />
             </Link>
             <Link href="/report" className="contents">
               <ActionButton
-                icon={<MessageCircle size={40} />}
+                icon={<MessageCircle size={30} />}
                 label="출결 신고"
-                sub="지각/결석 사유"
+                sub="사유 적기"
                 color="bg-orange-50 text-orange-600"
               />
             </Link>
             <Link href="/settings/password" className="contents">
               <ActionButton
-                icon={<Settings size={40} />}
+                icon={<Settings size={30} />}
                 label="비번 변경"
-                sub="보안 계정 설정"
+                sub="보안 설정"
                 color="bg-emerald-50 text-emerald-600"
               />
             </Link>
           </div>
         </div>
 
-        <div className="flex flex-col gap-6 mt-8 pb-12 max-w-[800px] mx-auto w-full">
+        <div className="flex flex-col gap-6 mt-4 pb-12 w-full">
           <h3 className="text-2xl font-black flex items-center justify-between px-2">
             중요 공지 및 일정
-            <span className="text-xs text-indigo-500 font-bold border-2 border-indigo-100 px-3 py-1 rounded-full bg-indigo-50/50">New Notifications</span>
           </h3>
           <div className="flex flex-col gap-6">
             {announcements.length === 0 ? (
@@ -239,13 +237,6 @@ export default function Home() {
             )}
           </div>
         </div>
-
-        {/* Bottom Nav Placeholder */}
-        <div className="mt-auto pt-6 flex justify-around border-t border-gray-100">
-          <NavIcon icon={<Calendar size={20} />} active />
-          <NavIcon icon={<Bell size={20} />} />
-          <NavIcon icon={<User size={20} />} />
-        </div>
       </main>
     </div>
   );
@@ -255,14 +246,14 @@ function ActionButton({ icon, label, sub, color, onClick }: any) {
   return (
     <button
       onClick={onClick}
-      className="premium-card p-10 flex flex-col gap-5 items-start text-left border-none shadow-md hover:shadow-lg h-full w-full transition-all hover:-translate-y-1"
+      className="premium-card p-6 flex flex-col gap-4 items-start text-left border-none shadow-md hover:shadow-lg h-full w-full transition-all hover:-translate-y-1"
     >
-      <div className={`p-5 rounded-[2rem] shrink-0 ${color} shadow-sm`}>
+      <div className={`p-4 rounded-2xl shrink-0 ${color} shadow-sm`}>
         {icon}
       </div>
-      <div className="flex flex-col gap-2">
-        <h4 className="font-black text-gray-800 text-3xl tracking-tight leading-none break-keep">{label}</h4>
-        <p className="text-sm text-gray-400 leading-tight opacity-80 font-semibold">{sub}</p>
+      <div className="flex flex-col gap-1">
+        <h4 className="font-black text-gray-800 text-xl tracking-tight leading-none break-keep">{label}</h4>
+        <p className="text-[11px] text-gray-400 leading-tight opacity-80 font-semibold">{sub}</p>
       </div>
     </button>
   );
@@ -280,13 +271,5 @@ function ActivityItem({ title, time, icon, type }: any) {
       </div>
       <ChevronRight size={16} className="text-gray-300" />
     </div>
-  );
-}
-
-function NavIcon({ icon, active = false }: any) {
-  return (
-    <button className={`p-2 rounded-xl transition-colors ${active ? 'text-indigo-600 bg-indigo-50' : 'text-gray-400'}`}>
-      {icon}
-    </button>
   );
 }
