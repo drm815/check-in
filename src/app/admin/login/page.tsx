@@ -11,16 +11,28 @@ export default function AdminLoginPage() {
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
-        // Simple admin check: admin / admin
-        if (adminId === "admin" && adminPassword === "admin") {
-            sessionStorage.setItem("admin_login", "true");
-            router.push("/admin");
-        } else {
-            alert("관리자 정보가 일치하지 않습니다.");
+        try {
+            const res = await fetch("/api/admin/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ password: adminPassword }),
+            });
+
+            if (res.ok) {
+                sessionStorage.setItem("admin_login", "true");
+                sessionStorage.setItem("admin_id", adminId);
+                router.push("/admin");
+            } else {
+                alert("관리자 정보가 일치하지 않습니다.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("서버 연결 오류가 발생했습니다.");
+        } finally {
             setIsLoading(false);
         }
     };

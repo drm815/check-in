@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, Lock, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import LogoutButton from "@/components/LogoutButton";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
@@ -27,7 +28,7 @@ export default function ChangePasswordPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (newPassword.length !== 4 || isNaN(Number(newPassword))) {
+        if (!/^\d{4}$/.test(newPassword)) {
             alert("비밀번호는 숫자 4자리로 입력해주세요.");
             return;
         }
@@ -44,8 +45,9 @@ export default function ChangePasswordPage() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    studentId: studentId,
-                    newPassword: newPassword
+                    studentId,
+                    oldPassword,
+                    newPassword,
                 })
             });
 
@@ -85,14 +87,20 @@ export default function ChangePasswordPage() {
     }
 
     return (
-        <main className="min-h-screen flex flex-col items-center bg-[#F8FAFC] p-4 pt-[80px] font-sans text-slate-900">
-            <div className="w-[90%] max-w-[400px] flex flex-col pb-12 gap-[60px] overflow-y-auto">
+        <main className="min-h-screen flex flex-col items-center bg-[#F8FAFC] pt-[10px] font-sans text-slate-900 overflow-y-auto">
+            <div className="w-[90%] max-w-[400px] flex flex-col pb-12 gap-[30px]">
+                {/* Top Spacer */}
+                <div className="h-[5px] shrink-0" />
+
                 {/* Header */}
-                <div className="flex items-center gap-3 px-[30px]">
-                    <Link href="/" className="p-2.5 bg-white hover:bg-gray-50 rounded-2xl transition-all shadow-sm border border-gray-100 flex items-center justify-center">
-                        <ChevronLeft size={24} className="text-gray-700" />
-                    </Link>
-                    <h2 className="text-[28px] font-black text-gray-900 leading-none tracking-tight">비밀번호 변경</h2>
+                <div className="flex items-center justify-between px-[30px]">
+                    <div className="flex items-center gap-3">
+                        <Link href="/" className="p-2.5 bg-white hover:bg-gray-50 rounded-2xl transition-all shadow-sm border border-gray-100 flex items-center justify-center">
+                            <ChevronLeft size={24} className="text-gray-700" />
+                        </Link>
+                        <h2 className="text-[28px] font-black text-gray-900 leading-none tracking-tight">비밀번호 변경</h2>
+                    </div>
+                    <LogoutButton className="bg-white rounded-full shadow-sm border border-gray-100" />
                 </div>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-10 px-[30px]">
@@ -104,6 +112,19 @@ export default function ChangePasswordPage() {
                     </div>
 
                     <div className="flex flex-col gap-8">
+                        <div className="space-y-3">
+                            <label className="text-[14px] font-[800] text-[#FF4D8D] uppercase tracking-widest ml-5 opacity-90">현재 비밀번호</label>
+                            <input
+                                type="password"
+                                maxLength={4}
+                                required
+                                placeholder="현재 비밀번호 입력"
+                                className="w-full h-[64px] rounded-2xl bg-white border-2 border-gray-100 focus:border-[#FF4D8D]/30 focus:ring-4 focus:ring-[#FF4D8D]/5 outline-none transition-all text-center text-2xl font-bold tracking-[0.8em] shadow-sm text-gray-900 placeholder:text-gray-200 placeholder:tracking-normal placeholder:text-base px-6"
+                                value={oldPassword}
+                                onChange={(e) => setOldPassword(e.target.value)}
+                            />
+                        </div>
+
                         <div className="space-y-3">
                             <label className="text-[14px] font-[800] text-[#FF4D8D] uppercase tracking-widest ml-5 opacity-90">새 비밀번호</label>
                             <input

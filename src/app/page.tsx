@@ -18,13 +18,18 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import LogoutButton from "@/components/LogoutButton";
+import Chatbot from "@/components/Chatbot";
 
 export default function Home() {
   const [status, setStatus] = useState<"away" | "school" | "home">("away");
   const [scanTime, setScanTime] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [studentName, setStudentName] = useState("");
+  const [studentName, setStudentName] = useState(() =>
+    typeof window !== "undefined" ? sessionStorage.getItem("student_name") || "" : ""
+  );
   const [announcements, setAnnouncements] = useState<any[]>([]);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -33,9 +38,6 @@ export default function Home() {
       router.push("/login");
       return;
     }
-
-    const name = sessionStorage.getItem("student_name") || "";
-    setStudentName(name);
 
     // Fetch Status and Announcements
     const fetchData = async () => {
@@ -55,26 +57,34 @@ export default function Home() {
           const studentId = sessionStorage.getItem("student_id");
           const today = new Date().toISOString().split('T')[0];
 
-          // Find today's records for this student and take the latest one
-          const studentRecords = allAtt.filter((r: any) => {
+          // 1. Get ALL records for this student
+          const myAllRecords = allAtt.filter((r: any) => {
             const rId = (r.studentid || r["학번"] || "").toString().trim();
-            const rDate = new Date(r.timestamp || r["시각"]).toISOString().split('T')[0];
-            return rId === studentId && rDate === today;
+            return rId === studentId;
           });
 
-          if (studentRecords.length > 0) {
-            // Sort by timestamp desc to get the latest
-            studentRecords.sort((a: any, b: any) =>
-              new Date(b.timestamp || b["시각"]).getTime() - new Date(a.timestamp || a["시각"]).getTime()
-            );
+          // Sort by timestamp desc (newest first)
+          myAllRecords.sort((a: any, b: any) =>
+            new Date(b.timestamp || b["시각"]).getTime() - new Date(a.timestamp || a["시각"]).getTime()
+          );
 
-            const latest = studentRecords[0];
+          // 2. Main Status Logic (Only considers TODAY's check-in/out)
+          const todayRecords = myAllRecords.filter((r: any) => {
+            const rDate = new Date(r.timestamp || r["시각"]).toISOString().split('T')[0];
+            const type = (r.type || r["유형"] || "").toString().trim();
+            return rDate === today && (type === "등교" || type === "하교");
+          });
+
+          if (todayRecords.length > 0) {
+            const latest = todayRecords[0];
             const type = (latest.type || latest["유형"] || "").toString().trim();
 
             if (type === "하교") {
               setStatus("home");
-            } else {
+            } else if (type === "등교") {
               setStatus("school");
+            } else {
+              setStatus("away");
             }
 
             const time = new Date(latest.timestamp || latest["시각"]).toLocaleTimeString('ko-KR', {
@@ -86,6 +96,8 @@ export default function Home() {
             setStatus("away");
             setScanTime(null);
           }
+
+
         }
       } catch (err) {
         console.error(err);
@@ -110,10 +122,13 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center pt-[80px]">
-      <main className="w-[90%] max-w-[400px] flex flex-col p-6 pb-12 gap-16 overflow-y-auto">
+    <div className="min-h-screen bg-[#F8FAFC] flex flex-col items-center pt-[10px] overflow-y-auto">
+      <main className="w-[90%] max-w-[400px] flex flex-col pb-12 gap-[30px]">
+        {/* Top Spacer */}
+        <div className="h-[5px] shrink-0" />
+
         {/* Header */}
-        <div className="flex justify-between items-center animate-fade px-2">
+        <div className="flex justify-between items-start animate-fade px-2">
           <div className="flex flex-col gap-2">
             <h2 className="text-gray-400 text-[11px] font-black uppercase tracking-[0.3em]">{dateString}</h2>
             <div className="flex items-center gap-2">
@@ -123,6 +138,7 @@ export default function Home() {
               </h1>
             </div>
           </div>
+          <LogoutButton className="bg-white rounded-full shadow-sm border border-slate-100 mt-2" />
         </div>
 
         {/* Status Card Section */}
@@ -130,36 +146,34 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={`relative overflow-hidden rounded-[4rem] p-8 shadow-xl border-2 transition-all duration-300 flex flex-col items-center justify-center gap-6 ${status === "school" ? "bg-[#FFF1F2] border-[#FFE4E6] text-[#9F1239]" :
+            className={`relative overflow-hidden rounded-[2rem] p-6 shadow-lg border-2 transition-all duration-300 flex items-center justify-between pl-14 pr-8 ${status === "school" ? "bg-[#FFF1F2] border-[#FFE4E6] text-[#9F1239]" :
               status === "home" ? "bg-emerald-50 border-emerald-100 text-emerald-700" :
                 "bg-[#F0F9FF] border-[#E0F2FE] text-[#075985]"
               }`}
           >
-            <div className="flex flex-col items-center gap-4">
-              <div className={`p-4 rounded-2xl shadow-sm ${status === "school" ? "bg-white text-rose-500" :
+            <div className="flex items-center gap-5">
+              <div className={`p-4 rounded-xl shadow-sm shrink-0 ${status === "school" ? "bg-white text-rose-500" :
                 status === "home" ? "bg-white text-emerald-500" :
                   "bg-white text-sky-500"
                 }`}>
-                {status === "school" ? <CheckCircle2 size={32} strokeWidth={2.5} /> :
-                  status === "home" ? <MapPin size={32} strokeWidth={2.5} /> :
-                    <Clock size={32} strokeWidth={2.5} />}
+                {status === "school" ? <CheckCircle2 size={26} strokeWidth={2.5} /> :
+                  status === "home" ? <MapPin size={26} strokeWidth={2.5} /> :
+                    <Clock size={26} strokeWidth={2.5} />}
               </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-sm font-black uppercase tracking-[0.3em] opacity-60">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 leading-none mb-1">
                   {status === "school" ? "In School" : status === "home" ? "Returned Home" : "Away"}
                 </span>
-                <h3 className="text-4xl font-black tracking-tight text-center leading-none">
+                <h3 className="text-xl font-black tracking-tight leading-tight">
                   {status === "school" ? "등교 완료" : status === "home" ? "하교 완료" : "미등교 상태"}
                 </h3>
+                {scanTime && (
+                  <div className="mt-1 flex items-center gap-1.5 opacity-50">
+                    <span className="text-[9px] font-bold uppercase tracking-widest">{scanTime} 스캔됨</span>
+                  </div>
+                )}
               </div>
             </div>
-
-            {scanTime && (
-              <div className="mt-2 pt-4 border-t border-current border-dashed opacity-30 w-full flex flex-col items-center gap-1">
-                <span className="text-[10px] font-bold uppercase tracking-widest">Last Scanned At</span>
-                <span className="text-2xl font-black tracking-tighter">{scanTime}</span>
-              </div>
-            )}
           </motion.div>
         </div>
 
@@ -229,7 +243,7 @@ export default function Home() {
                       </span>
                       <h5 className="font-black text-xl text-gray-800 group-hover:text-indigo-600 transition-colors line-clamp-1 tracking-tight">{ann.title}</h5>
                     </div>
-                    <span className="text-xs font-bold text-gray-400">{ann.date}</span>
+                    <span className="text-xs font-bold text-gray-400">{ann.date ? new Date(ann.date).toLocaleDateString() : ""}</span>
                   </div>
                   <p className="text-base text-gray-500 line-clamp-2 leading-relaxed font-medium opacity-80">{ann.content}</p>
                 </motion.div>
@@ -237,6 +251,9 @@ export default function Home() {
             )}
           </div>
         </div>
+
+
+        <Chatbot />
       </main>
     </div>
   );

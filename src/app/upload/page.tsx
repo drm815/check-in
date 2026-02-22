@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, Camera, Upload, X, CheckCircle2, Loader2, Image as ImageIcon, ChevronDown } from "lucide-react";
 import Link from "next/link";
+import LogoutButton from "@/components/LogoutButton";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function PhotoUploadPage() {
@@ -50,7 +51,10 @@ export default function PhotoUploadPage() {
     };
 
     const removeImage = (index: number) => {
-        setImages(prev => prev.filter((_, i) => i !== index));
+        setImages(prev => {
+            URL.revokeObjectURL(prev[index].preview);
+            return prev.filter((_, i) => i !== index);
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -124,14 +128,20 @@ export default function PhotoUploadPage() {
     }
 
     return (
-        <main className="min-h-screen flex flex-col items-center bg-[#F8FAFC] p-4 pt-[80px] font-sans">
-            <div className="w-[90%] max-w-[400px] flex flex-col pb-12 gap-[60px] overflow-y-auto">
+        <main className="min-h-screen flex flex-col items-center bg-[#F8FAFC] pt-[10px] font-sans overflow-y-auto">
+            <div className="w-[90%] max-w-[400px] flex flex-col pb-12 gap-[30px]">
+                {/* Top Spacer */}
+                <div className="h-[5px] shrink-0" />
+
                 {/* Header */}
-                <div className="flex items-center gap-3 px-[30px]">
-                    <Link href="/" className="p-2.5 bg-white hover:bg-gray-50 rounded-2xl transition-all shadow-sm border border-gray-100 flex items-center justify-center">
-                        <ChevronLeft size={24} className="text-gray-700" />
-                    </Link>
-                    <h2 className="text-[28px] font-black text-gray-900 leading-none tracking-tight">사진 업로드</h2>
+                <div className="flex items-center justify-between px-[30px]">
+                    <div className="flex items-center gap-3">
+                        <Link href="/" className="p-2.5 bg-white hover:bg-gray-50 rounded-2xl transition-all shadow-sm border border-gray-100 flex items-center justify-center">
+                            <ChevronLeft size={24} className="text-gray-700" />
+                        </Link>
+                        <h2 className="text-[28px] font-black text-gray-900 leading-none tracking-tight">사진 업로드</h2>
+                    </div>
+                    <LogoutButton className="bg-white rounded-full shadow-sm border border-gray-100" />
                 </div>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-12 px-[30px]">
@@ -142,7 +152,7 @@ export default function PhotoUploadPage() {
                             <select
                                 value={selectedTopic}
                                 onChange={(e) => setSelectedTopic(e.target.value)}
-                                className="w-full h-[64px] bg-white border-2 border-gray-100 rounded-2xl pl-10 pr-12 text-[16px] font-bold text-gray-800 outline-none focus:border-[#FF4D8D]/30 focus:ring-4 focus:ring-[#FF4D8D]/5 transition-all appearance-none cursor-pointer shadow-sm"
+                                className="w-full h-[64px] bg-white border-2 border-gray-100 rounded-2xl px-12 text-[16px] font-bold text-gray-800 outline-none focus:border-[#FF4D8D]/30 focus:ring-4 focus:ring-[#FF4D8D]/5 transition-all appearance-none cursor-pointer shadow-sm text-center"
                             >
                                 <option value="" disabled>활동 주제를 선택해 주세요</option>
                                 {topics.map((topic) => (
@@ -185,7 +195,7 @@ export default function PhotoUploadPage() {
                             </AnimatePresence>
 
                             {images.length < 3 && (
-                                <label className="w-full aspect-[16/8] rounded-[32px] border-2 border-dashed border-gray-200 bg-white flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-[#FF4D8D] hover:bg-pink-50/20 transition-all text-gray-400 hover:text-[#FF4D8D] shadow-sm overflow-hidden group">
+                                <label className="w-full aspect-[16/7.2] rounded-[32px] border-2 border-dashed border-gray-200 bg-white flex flex-col items-center justify-center gap-4 cursor-pointer hover:border-[#FF4D8D] hover:bg-pink-50/20 transition-all text-gray-400 hover:text-[#FF4D8D] shadow-sm overflow-hidden group">
                                     <div className="w-14 h-14 rounded-2xl bg-gray-50 text-gray-400 group-hover:bg-pink-100 group-hover:text-[#FF4D8D] flex items-center justify-center transition-all duration-300">
                                         <Camera size={32} />
                                     </div>
