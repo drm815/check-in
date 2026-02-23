@@ -4,18 +4,21 @@ import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
     try {
-        const { password } = await req.json();
-
-        // 1. Check Password
+        const { id, password } = await req.json();
+        const adminId = process.env.ADMIN_ID;
         const adminPass = process.env.ADMIN_PASSWORD;
-        if (!adminPass) {
+
+        if (!adminId || !adminPass) {
+            console.error("❌ [Login Error] Server environment variables are missing.");
             return NextResponse.json({ error: "서버 설정 오류" }, { status: 500 });
         }
 
-        if (password !== adminPass) {
-            return NextResponse.json({ error: "Invalid password" }, { status: 401 });
+        if (id !== adminId.trim() || password !== adminPass.trim()) {
+            console.warn(`⚠️ [Login Failed] ID: ${id}`);
+            return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
         }
 
+        console.log(`✅ [Login Success] Admin logged in: ${id}`);
         // 2. Generate Token
         const token = await signAuth({ role: "admin" });
 
@@ -32,6 +35,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ success: true });
     } catch (error) {
+        console.error("❌ [Server Error]", error);
         return NextResponse.json({ error: "Server error" }, { status: 500 });
     }
 }
