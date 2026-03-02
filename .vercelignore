@@ -1,0 +1,9 @@
+node_modules
+.next
+.git
+vibe-coding-skills
+보안.md
+tsconfig.tsbuildinfo
+*.log
+.DS_Store
+gas/
