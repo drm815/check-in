@@ -61,7 +61,7 @@ export default function Chatbot() {
         if (!input.trim()) return;
 
         const userMsg = input.trim();
-        const newMsgId = messages.length + 1;
+        const newMsgId = Date.now();
 
         // 1. Add User Message
         setMessages(prev => [...prev, { id: newMsgId, text: userMsg, isBot: false }]);
@@ -69,15 +69,17 @@ export default function Chatbot() {
 
         // 2. Bot Response Logic (Keyword Matching)
         setTimeout(() => {
-            const matched = keywords.find(k =>
-                userMsg.includes(k.keyword) || k.keyword.includes(userMsg)
-            );
+            const normalized = userMsg.trim().toLowerCase();
+            const matched = keywords.find(k => {
+                const kw = k.keyword.trim().toLowerCase();
+                return normalized.includes(kw) || kw.includes(normalized);
+            });
 
             let botResponse = "죄송해요, 아직 모르는 내용이에요. 😅\n선생님께 업데이트를 요청해 볼게요!";
-            if (matched) {
-                botResponse = matched.response;
-            } else if (userMsg.includes("안녕")) {
+            if (normalized.includes("안녕")) {
                 botResponse = "안녕하세요! 오늘도 좋은 하루 보내세요. 👋";
+            } else if (matched) {
+                botResponse = matched.response;
             }
 
             setMessages(prev => [...prev, { id: newMsgId + 1, text: botResponse, isBot: true }]);
@@ -85,6 +87,7 @@ export default function Chatbot() {
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.nativeEvent.isComposing) return; // 한글 조합 중 Enter 무시
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             handleSend();

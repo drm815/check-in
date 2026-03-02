@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-    const GOOGLE_SHEET_API = process.env.GOOGLE_SHEET_API_URL;
+    const GOOGLE_SHEET_API = process.env.GOOGLE_SHEET_WEB_APP_URL;
 
     if (!GOOGLE_SHEET_API) {
         return NextResponse.json({ error: "API URL not configured" }, { status: 500 });
