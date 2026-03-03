@@ -130,6 +130,25 @@ export default function QRPrintPage() {
                 </button>
             </div>
 
+            {/* 공용 하교 QR */}
+            <div className="max-w-5xl mx-auto mb-10 print:mb-6">
+                <h2 className="text-lg font-bold text-gray-700 mb-4 print:hidden">공용 하교 QR (1장 출력 후 게시)</h2>
+                <div className="flex justify-center">
+                    <div
+                        className="bg-white border-4 p-8 rounded-3xl flex flex-col items-center gap-4 print:border-solid print:rounded-xl print:break-inside-avoid print:p-6"
+                        style={{ borderColor: "#3B82F6", maxWidth: 280 }}
+                    >
+                        <div className="w-full flex flex-col items-center gap-1 py-3 rounded-2xl" style={{ backgroundColor: "#EFF6FF" }}>
+                            <span className="text-5xl leading-none">🚪</span>
+                            <span className="text-lg font-black tracking-tight" style={{ color: "#3B82F6" }}>공용 하교 QR</span>
+                        </div>
+                        <FlowerQR studentId="CLASS_MATES_HOME_QR" color="#3B82F6" />
+                        <p className="text-[10px] text-gray-400 text-center font-bold">이 QR을 찍으면 누구든 하교 처리됩니다</p>
+                        <p className="text-[8px] text-gray-300 text-center uppercase tracking-widest font-mono">Class-Mates Home QR</p>
+                    </div>
+                </div>
+            </div>
+
             {/* QR 카드 그리드 */}
             <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 print:grid-cols-3 print:gap-4">
                 {students.map((student, index) => {

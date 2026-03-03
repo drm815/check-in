@@ -5,12 +5,17 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { studentId, scannedId, type } = body;
 
-        if (studentId !== scannedId) {
+        const isHomeQR = scannedId === "CLASS_MATES_HOME_QR";
+
+        if (!isHomeQR && studentId !== scannedId) {
             return NextResponse.json({
                 success: false,
                 message: '본인의 책상 QR 코드가 아닙니다. 확인 후 다시 시도해 주세요.'
             }, { status: 400 });
         }
+
+        // 공용 하교 QR은 항상 하교 처리
+        const finalType = isHomeQR ? "하교" : type;
 
         const gasUrl = process.env.GOOGLE_SHEET_WEB_APP_URL;
         if (!gasUrl) {
@@ -26,7 +31,7 @@ export async function POST(request: Request) {
                 reportId,
                 studentId: body.studentId,
                 name: body.studentName || '알 수 없음',
-                type,
+                type: finalType,
                 status: 'CONFIRMED',
                 reason: 'QR 스캔'
             }),
