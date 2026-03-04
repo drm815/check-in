@@ -26,7 +26,8 @@ export async function POST(request: Request) {
 
         const res = await fetch(gasUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            redirect: 'follow',
+            headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify({
                 reportId,
                 studentId: body.studentId,
@@ -42,7 +43,12 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: 'GAS 요청 실패' }, { status: 502 });
         }
 
-        const data = await res.json();
+        let data = {};
+        try {
+            data = await res.json();
+        } catch {
+            // GAS가 HTML 리다이렉트 페이지를 반환해도 기록은 완료된 것
+        }
         return NextResponse.json({ success: true, data });
     } catch (error) {
         console.error('Attendance API Error:', error);

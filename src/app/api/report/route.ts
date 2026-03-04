@@ -9,7 +9,7 @@ export async function POST(request: Request) {
         if (gasUrl) {
             await fetch(gasUrl, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify({
                     reportId,
                     studentId,

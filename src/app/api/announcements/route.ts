@@ -39,14 +39,19 @@ export async function POST(request: Request) {
 
         const res = await fetch(gasUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify({ title, content, category, action: 'addAnnouncement' }),
         });
         if (!res.ok) {
             console.error('GAS POST error:', res.status);
             return NextResponse.json({ error: 'Failed to save announcement' }, { status: 502 });
         }
-        const data = await res.json();
+        let data = {};
+        try {
+            data = await res.json();
+        } catch {
+            // GAS HTML 리다이렉트 응답 무시
+        }
         return NextResponse.json(data);
     } catch (error) {
         console.error('Announcement POST error:', error);

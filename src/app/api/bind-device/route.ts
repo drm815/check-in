@@ -10,6 +10,7 @@ export async function POST(request: Request) {
         const body = await request.json();
         const response = await fetch(gasUrl, {
             method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify({
                 action: 'bindDevice',
                 studentId: body.studentId,
@@ -17,7 +18,12 @@ export async function POST(request: Request) {
             })
         });
 
-        const result = await response.json();
+        let result = {};
+        try {
+            result = await response.json();
+        } catch {
+            // GAS HTML 리다이렉트 응답 무시
+        }
         return NextResponse.json(result);
     } catch (error) {
         console.error('Bind Device Error:', error);

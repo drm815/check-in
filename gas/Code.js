@@ -440,7 +440,7 @@ function getTopics() {
 }
 
 function sendParentNotification(parentEmail, studentName, reason, reportId) {
-    var appUrl = "https://class-mates-production.up.railway.app";
+    var appUrl = "https://check-in-ten-xi.vercel.app";
     var verifyUrl = appUrl + "/verify/" + reportId;
     var subject = "[Class-Mates] " + studentName + " 학생의 출결 신고 확인 요청";
 

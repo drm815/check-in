@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
         const response = await fetch(GAS_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'text/plain' },
             body: JSON.stringify(payload),
         });
 
@@ -35,7 +35,12 @@ export async function POST(request: Request) {
             throw new Error('Failed to send data to GAS');
         }
 
-        const data = await response.json();
+        let data = {};
+        try {
+            data = await response.json();
+        } catch {
+            // GAS HTML 리다이렉트 응답 무시
+        }
         return NextResponse.json(data);
     } catch (error) {
         console.error('Error manual check-in:', error);
