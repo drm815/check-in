@@ -13,6 +13,7 @@ export default function ScanPage() {
     const [currentStatus, setCurrentStatus] = useState<"away" | "school" | "home">("away");
     const currentStatusRef = useRef<"away" | "school" | "home">("away");
     const scannerRef = useRef<Html5Qrcode | null>(null);
+    const scanReadyRef = useRef<boolean>(false);
 
     useEffect(() => {
         const fetchCurrentStatus = async () => {
@@ -55,6 +56,9 @@ export default function ScanPage() {
     }, []);
 
     const onScanSuccess = useCallback(async (decodedText: string) => {
+        // 카메라 시작 직후 잔상 QR 인식 방지 (1.5초 딜레이)
+        if (!scanReadyRef.current) return;
+
         // 스캐너 먼저 정지 (이중 스캔 방지)
         if (scannerRef.current && scannerRef.current.isScanning) {
             try { await scannerRef.current.stop(); } catch { /* ignore */ }
@@ -96,6 +100,7 @@ export default function ScanPage() {
 
     useEffect(() => {
         if (status === "scanning") {
+            scanReadyRef.current = false;
             const html5QrCode = new Html5Qrcode("reader");
             scannerRef.current = html5QrCode;
 
@@ -104,7 +109,10 @@ export default function ScanPage() {
                 { fps: 10, qrbox: { width: 250, height: 250 } },
                 onScanSuccess,
                 onScanFailure
-            ).catch(err => {
+            ).then(() => {
+                // 카메라 시작 후 1.5초 뒤부터 QR 인식 활성화
+                setTimeout(() => { scanReadyRef.current = true; }, 1500);
+            }).catch(err => {
                 console.error("Scanner start error", err);
                 setStatus("idle");
                 alert("카메라를 시작할 수 없습니다. 권한을 확인해 주세요.");
