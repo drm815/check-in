@@ -127,7 +127,7 @@ export default function QRPrintPage() {
                     body * { visibility: hidden; }
                     #print-area, #print-area * { visibility: visible; }
                     #print-area {
-                        position: fixed;
+                        position: absolute;
                         top: 0; left: 0;
                         width: 100%;
                         padding: 8mm;
