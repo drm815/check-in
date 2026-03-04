@@ -57,7 +57,7 @@ function FlowerQR({ studentId, color }: { studentId: string; color: string }) {
             width: 180,
             height: 180,
             data: studentId,
-            margin: 6,
+            margin: 3,
             qrOptions: { errorCorrectionLevel: "H" },
             dotsOptions:         { type: "square", color },
             cornersSquareOptions: { type: "square", color },
@@ -75,6 +75,7 @@ export default function QRPrintPage() {
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [printMode, setPrintMode] = useState<"all" | "selected">("all");
+    const [printHomeQR, setPrintHomeQR] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -240,6 +241,15 @@ export default function QRPrintPage() {
                             </div>
                         </div>
                     )}
+                    <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100">
+                        <button
+                            onClick={() => setPrintHomeQR(v => !v)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border transition-colors ${printHomeQR ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-500 border-gray-200 hover:border-blue-300"}`}
+                        >
+                            🚪 공용 하교 QR 포함
+                        </button>
+                        <span className="text-xs text-gray-400">{printHomeQR ? "인쇄 시 첫 장에 공용 하교 QR이 포함됩니다" : "포함 안 함 (기본값)"}</span>
+                    </div>
                     <p className="mt-3 text-xs text-gray-400">인쇄 시 A4 용지에 한 줄 2개씩 배치됩니다.</p>
                 </div>
 
@@ -247,14 +257,14 @@ export default function QRPrintPage() {
                 <div id="print-area">
 
                     {/* 공용 하교 QR */}
-                    <div className="print-home-card hidden print:flex max-w-xs mx-auto mb-6">
+                    {printHomeQR && <div className="print-home-card hidden print:flex max-w-xs mx-auto mb-6">
                         <div className="flex flex-col items-center gap-1 py-2 rounded-xl w-full" style={{ backgroundColor: "#EFF6FF" }}>
                             <span className="text-4xl leading-none">🚪</span>
                             <span className="text-base font-black" style={{ color: "#3B82F6" }}>공용 하교 QR</span>
                         </div>
                         <FlowerQR studentId="CLASS_MATES_HOME_QR" color="#3B82F6" />
                         <p className="text-[9px] text-gray-400 text-center font-bold">이 QR을 찍으면 누구든 하교 처리됩니다</p>
-                    </div>
+                    </div>}
 
                     {/* 공용 하교 QR - 화면용 */}
                     <div className="max-w-5xl mx-auto mb-8 print:hidden">
