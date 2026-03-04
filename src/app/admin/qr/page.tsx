@@ -124,45 +124,42 @@ export default function QRPrintPage() {
             {/* 인쇄 전용 CSS */}
             <style>{`
                 @media print {
-                    body * { visibility: hidden; }
-                    #print-area, #print-area * { visibility: visible; }
-                    #print-area {
-                        position: absolute;
-                        top: 0; left: 0;
-                        width: 100%;
-                        padding: 8mm;
-                        box-sizing: border-box;
-                    }
+                    .no-print { display: none !important; }
+                    body { margin: 0; padding: 0; background: white; }
+                    main { padding: 6mm !important; }
                     .print-grid {
                         display: grid !important;
                         grid-template-columns: 1fr 1fr !important;
-                        gap: 8mm !important;
+                        gap: 6mm !important;
                         width: 100% !important;
+                        max-width: 100% !important;
+                        margin: 0 !important;
                     }
                     .print-card {
                         break-inside: avoid !important;
                         page-break-inside: avoid !important;
                         border: 1.5px solid #ccc !important;
                         border-radius: 8px !important;
-                        padding: 6mm !important;
+                        padding: 4mm !important;
                         background: white !important;
                         display: flex !important;
                         flex-direction: column !important;
                         align-items: center !important;
-                        gap: 4mm !important;
+                        gap: 3mm !important;
+                        box-sizing: border-box !important;
                     }
                     .print-card canvas,
                     .print-card svg {
-                        width: 160px !important;
-                        height: 160px !important;
+                        width: 150px !important;
+                        height: 150px !important;
                     }
                     .print-home-card {
                         break-inside: avoid !important;
                         page-break-inside: avoid !important;
-                        margin-bottom: 8mm !important;
+                        margin-bottom: 6mm !important;
                         border: 2px solid #3B82F6 !important;
                         border-radius: 8px !important;
-                        padding: 6mm !important;
+                        padding: 4mm !important;
                         background: white !important;
                         display: flex !important;
                         flex-direction: column !important;
@@ -178,7 +175,7 @@ export default function QRPrintPage() {
             <main className="min-h-screen bg-gray-50 pt-[15vh] pb-8 px-8">
 
                 {/* ── UI 헤더 (인쇄 시 숨김) ── */}
-                <div className="max-w-4xl mx-auto mb-6 flex items-center justify-between print:hidden">
+                <div className="no-print max-w-4xl mx-auto mb-6 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Link href="/admin" className="p-2 hover:bg-white rounded-xl transition-colors">
                             <ChevronLeft size={24} />
@@ -195,7 +192,7 @@ export default function QRPrintPage() {
                 </div>
 
                 {/* ── 인쇄 옵션 패널 (인쇄 시 숨김) ── */}
-                <div className="max-w-4xl mx-auto mb-6 bg-white rounded-2xl border border-gray-200 p-5 print:hidden">
+                <div className="no-print max-w-4xl mx-auto mb-6 bg-white rounded-2xl border border-gray-200 p-5">
                     <p className="text-sm font-bold text-gray-600 mb-3">인쇄 방식 선택</p>
                     <div className="flex gap-3 mb-4">
                         <button
@@ -254,9 +251,9 @@ export default function QRPrintPage() {
                 </div>
 
                 {/* ── 인쇄 영역 ── */}
-                <div id="print-area">
+                <div>
 
-                    {/* 공용 하교 QR */}
+                    {/* 공용 하교 QR - 인쇄용 */}
                     {printHomeQR && <div className="print-home-card hidden print:flex max-w-xs mx-auto mb-6">
                         <div className="flex flex-col items-center gap-1 py-2 rounded-xl w-full" style={{ backgroundColor: "#EFF6FF" }}>
                             <span className="text-4xl leading-none">🚪</span>
@@ -267,7 +264,7 @@ export default function QRPrintPage() {
                     </div>}
 
                     {/* 공용 하교 QR - 화면용 */}
-                    <div className="max-w-5xl mx-auto mb-8 print:hidden">
+                    <div className="no-print max-w-5xl mx-auto mb-8">
                         <h2 className="text-lg font-bold text-gray-700 mb-4">공용 하교 QR (1장 출력 후 게시)</h2>
                         <div className="flex justify-center">
                             <div className="bg-white border-4 p-8 rounded-3xl flex flex-col items-center gap-4" style={{ borderColor: "#3B82F6", maxWidth: 280 }}>
@@ -282,7 +279,7 @@ export default function QRPrintPage() {
                     </div>
 
                     {/* QR 카드 그리드 - 화면 4열, 인쇄 2열 */}
-                    <div className="print-grid max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 print:gap-4">
+                    <div className="print-grid max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         {printTargets.map((student, i) => {
                             const originalIndex = students.findIndex(s => s.id === student.id);
                             const flower = getFlower(originalIndex);
@@ -309,7 +306,7 @@ export default function QRPrintPage() {
                 </div>
 
                 {/* 인쇄 가이드 */}
-                <div className="max-w-4xl mx-auto mt-12 p-6 bg-indigo-50 rounded-3xl border border-indigo-100 print:hidden text-indigo-900">
+                <div className="no-print max-w-4xl mx-auto mt-12 p-6 bg-indigo-50 rounded-3xl border border-indigo-100 text-indigo-900">
                     <h4 className="font-bold mb-2">💡 인쇄 가이드</h4>
                     <ul className="text-sm space-y-1 opacity-80">
                         <li>• 인쇄 시 A4 기준 한 줄에 2개씩 배치됩니다.</li>
