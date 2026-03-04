@@ -13,6 +13,7 @@ function doGet(e) {
     if (action === "getAttendance") return jsonResponse(getAttendanceData());
     if (action === "getAnnouncements") return jsonResponse(getAnnouncementsData());
     if (action === "getChatbotData") return jsonResponse(getChatbotData());
+    if (action === "getSetting") return jsonResponse({ value: getSetting(e.parameter.key) });
     return ContentService.createTextOutput("Invalid Action").setMimeType(ContentService.MimeType.TEXT);
 }
 
@@ -109,6 +110,9 @@ function doPost(e) {
         if (data.action === "uploadPhotos") return handlePhotoUpload(data);
         if (data.action === "changePassword") return changePassword(data.studentId, data.newPassword);
         if (data.action === "bindDevice") return bindDevice(data.studentId, data.deviceId);
+
+        // Settings Management
+        if (data.action === "saveSetting") return saveSetting(data.key, data.value);
 
         // Announcements Management
         if (data.action === "addAnnouncement") return addAnnouncement(data);
@@ -510,4 +514,16 @@ function sendTeacherNotification(studentName, type, reason) {
     } catch (e) {
         console.error("Teacher email failed: " + e.toString());
     }
+}
+
+// ── Settings ──────────────────────────────────────────────
+function getSetting(key) {
+    var props = PropertiesService.getScriptProperties();
+    var val = props.getProperty(key);
+    return val !== null ? val : null;
+}
+
+function saveSetting(key, value) {
+    PropertiesService.getScriptProperties().setProperty(key, String(value));
+    return jsonResponse({ result: "success" });
 }

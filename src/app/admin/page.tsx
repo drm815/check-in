@@ -54,6 +54,8 @@ export default function AdminDashboard() {
     const [selectedMissingStudents, setSelectedMissingStudents] = useState<string[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 7;
+    const [chatbotEnabled, setChatbotEnabled] = useState(true);
+    const [showSettings, setShowSettings] = useState(false);
 
     const router = useRouter();
 
@@ -63,6 +65,11 @@ export default function AdminDashboard() {
             router.push("/admin/login");
             return;
         }
+
+        fetch('/api/admin/settings?key=chatbotEnabled')
+            .then(r => r.json())
+            .then(d => { if (d.value !== null) setChatbotEnabled(d.value !== 'false'); })
+            .catch(() => {});
 
         const fetchData = async () => {
             setLoading(true);
@@ -396,9 +403,47 @@ export default function AdminDashboard() {
                         >
                             <RefreshCw size={22} />
                         </button>
-                        <button className="p-2 text-slate-400 hover:text-slate-600 transition-all">
-                            <Settings size={22} />
-                        </button>
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowSettings(v => !v)}
+                                className={`p-2 transition-all rounded-xl ${showSettings ? 'text-[#FF4D8D] bg-pink-50' : 'text-slate-400 hover:text-slate-600'}`}
+                            >
+                                <Settings size={22} />
+                            </button>
+                            <AnimatePresence>
+                                {showSettings && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                                        transition={{ duration: 0.15 }}
+                                        className="absolute right-0 top-10 w-64 bg-white rounded-2xl shadow-xl border border-slate-100 p-4 z-50"
+                                    >
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">설정</p>
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className="text-sm font-bold text-slate-700">챗봇 노출</p>
+                                                <p className="text-xs text-slate-400">학생 화면에 챗봇 표시</p>
+                                            </div>
+                                            <button
+                                                onClick={async () => {
+                                                    const next = !chatbotEnabled;
+                                                    setChatbotEnabled(next);
+                                                    await fetch('/api/admin/settings', {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({ key: 'chatbotEnabled', value: next }),
+                                                    });
+                                                }}
+                                                className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${chatbotEnabled ? 'bg-[#FF4D8D]' : 'bg-slate-200'}`}
+                                            >
+                                                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-200 ${chatbotEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </div>
                 </div>
             </header>

@@ -25,12 +25,23 @@ export default function Home() {
   const [status, setStatus] = useState<"away" | "school" | "home">("away");
   const [scanTime, setScanTime] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [chatbotEnabled, setChatbotEnabled] = useState(false);
   const [studentName, setStudentName] = useState(() =>
     typeof window !== "undefined" ? sessionStorage.getItem("student_name") || "" : ""
   );
   const [announcements, setAnnouncements] = useState<any[]>([]);
 
   const router = useRouter();
+
+  useEffect(() => {
+    fetch('/api/admin/settings?key=chatbotEnabled')
+      .then(r => r.json())
+      .then(d => {
+        // null = 설정한 적 없음 → 기본값 true, 'false' = 관리자가 꺼놓음
+        setChatbotEnabled(d.value !== 'false');
+      })
+      .catch(() => { setChatbotEnabled(true); });
+  }, []);
 
   useEffect(() => {
     const studentId = sessionStorage.getItem("student_id");
@@ -253,7 +264,7 @@ export default function Home() {
         </div>
 
 
-        <Chatbot />
+        {chatbotEnabled && <Chatbot />}
       </main>
     </div>
   );
