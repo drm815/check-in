@@ -54,21 +54,21 @@ function FlowerQR({ studentId, color }: { studentId: string; color: string }) {
         ref.current.innerHTML = "";
 
         const qr = new QRCodeStyling({
-            width: 120,
-            height: 120,
+            width: 200,
+            height: 200,
             data: studentId,
-            margin: 4,
+            margin: 6,
             qrOptions: { errorCorrectionLevel: "H" },
             dotsOptions: {
-                type: "dots",       // 동그란 점
+                type: "square",
                 color: color,
             },
             cornersSquareOptions: {
-                type: "extra-rounded", // 코너 큰 사각형 → 둥글게
+                type: "square",
                 color: color,
             },
             cornersDotOptions: {
-                type: "dot",        // 코너 내부 점 → 원형
+                type: "square",
                 color: color,
             },
             backgroundOptions: {
