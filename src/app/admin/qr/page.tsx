@@ -299,6 +299,7 @@ export default function QRPrintPage() {
                                     <p className="text-lg font-black tracking-tight" style={{ color: flower.color }}>
                                         {student.name}
                                     </p>
+                                    <p className="text-xs text-gray-400 font-mono">{student.id}</p>
                                     <p className="text-[8px] text-gray-300 text-center uppercase tracking-widest font-mono">
                                         Class-Mates Check-in
                                     </p>
