@@ -296,6 +296,9 @@ export default function QRPrintPage() {
                                         </span>
                                     </div>
                                     <FlowerQR studentId={student.id} color={flower.color} />
+                                    <p className="text-lg font-black tracking-tight" style={{ color: flower.color }}>
+                                        {student.name}
+                                    </p>
                                     <p className="text-[8px] text-gray-300 text-center uppercase tracking-widest font-mono">
                                         Class-Mates Check-in
                                     </p>
