@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Html5Qrcode } from "html5-qrcode";
-import { ChevronLeft, Camera, RefreshCw } from "lucide-react";
+import { ChevronLeft, Camera, RefreshCw, Flashlight, FlashlightOff } from "lucide-react";
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
 import { motion } from "framer-motion";
@@ -14,6 +14,16 @@ export default function ScanPage() {
     const currentStatusRef = useRef<"away" | "school" | "home">("away");
     const scannerRef = useRef<Html5Qrcode | null>(null);
     const scanReadyRef = useRef<boolean>(false);
+    // 스캔 처리 중 플래그 (이중 스캔 방지)
+    const processingRef = useRef<boolean>(false);
+    // 스캔 완료 후 실제로 처리된 type 저장
+    const [processedType, setProcessedType] = useState<"등교" | "하교" | null>(null);
+    // 하교 확인 모달 상태
+    const [showCheckoutConfirm, setShowCheckoutConfirm] = useState(false);
+    const pendingScannedIdRef = useRef<string | null>(null);
+    // 손전등
+    const [torchOn, setTorchOn] = useState(false);
+    const torchRef = useRef<boolean>(false);
 
     useEffect(() => {
         const fetchCurrentStatus = async () => {
@@ -55,21 +65,10 @@ export default function ScanPage() {
         // 매 프레임 QR 미감지 시 조용히 무시
     }, []);
 
-    const onScanSuccess = useCallback(async (decodedText: string) => {
-        // 카메라 시작 직후 잔상 QR 인식 방지 (1.5초 딜레이)
-        if (!scanReadyRef.current) return;
-
-        // 스캐너 먼저 정지 (이중 스캔 방지)
-        if (scannerRef.current && scannerRef.current.isScanning) {
-            try { await scannerRef.current.stop(); } catch { /* ignore */ }
-        }
-
-        setScanResult(decodedText);
-
+    // 실제 출결 API 호출 함수
+    const submitAttendance = useCallback(async (decodedText: string, scanType: "등교" | "하교") => {
         const studentId = sessionStorage.getItem("student_id");
         const studentName = sessionStorage.getItem("student_name");
-
-        const scanType = currentStatusRef.current === "school" ? "하교" : "등교";
 
         try {
             const response = await fetch("/api/attendance", {
@@ -86,6 +85,12 @@ export default function ScanPage() {
             const result = await response.json();
 
             if (response.ok) {
+                // 성공 시 상태 업데이트
+                const newStatus = scanType === "하교" ? "home" : "school";
+                setCurrentStatus(newStatus);
+                currentStatusRef.current = newStatus;
+                setProcessedType(scanType);
+                setScanResult(decodedText);
                 setStatus("success");
             } else {
                 alert(result.message || "스캔 처리 중 오류가 발생했습니다.");
@@ -95,18 +100,104 @@ export default function ScanPage() {
             console.error(error);
             alert("네트워크 통신 오류가 발생했습니다.");
             setStatus("idle");
+        } finally {
+            processingRef.current = false;
+        }
+    }, []);
+
+    const onScanSuccess = useCallback(async (decodedText: string) => {
+        // 카메라 시작 직후 잔상 QR 인식 방지 (1.5초 딜레이)
+        if (!scanReadyRef.current) return;
+        // 처리 중이면 무시 (이중 스캔 방지)
+        if (processingRef.current) return;
+
+        processingRef.current = true;
+
+        // 스캐너 먼저 정지 (이중 스캔 방지)
+        if (scannerRef.current && scannerRef.current.isScanning) {
+            try { await scannerRef.current.stop(); } catch { /* ignore */ }
+        }
+
+        const isHomeQR = decodedText === "CLASS_MATES_HOME_QR";
+        const currentSt = currentStatusRef.current;
+
+        if (isHomeQR) {
+            // 공용 하교 QR: 항상 하교 처리
+            await submitAttendance(decodedText, "하교");
+            return;
+        }
+
+        // 개인 QR: 등교 상태면 → 하교 확인 다이얼로그, 미등교면 → 등교 처리
+        if (currentSt === "school") {
+            // 이미 등교 중 → 하교 확인 필요
+            pendingScannedIdRef.current = decodedText;
+            setShowCheckoutConfirm(true);
+            processingRef.current = false;
+        } else if (currentSt === "home") {
+            // 이미 하교 완료 → 안내
+            alert("이미 하교 처리가 완료되었습니다.");
+            setStatus("idle");
+            processingRef.current = false;
+        } else {
+            // 미등교 → 등교 처리
+            await submitAttendance(decodedText, "등교");
+        }
+    }, [submitAttendance]);
+
+    // 하교 확인 모달에서 확인 버튼
+    const handleCheckoutConfirm = useCallback(async () => {
+        setShowCheckoutConfirm(false);
+        const scannedId = pendingScannedIdRef.current;
+        if (!scannedId) return;
+        processingRef.current = true;
+        await submitAttendance(scannedId, "하교");
+    }, [submitAttendance]);
+
+    // 하교 확인 모달에서 취소 버튼
+    const handleCheckoutCancel = useCallback(() => {
+        setShowCheckoutConfirm(false);
+        pendingScannedIdRef.current = null;
+        setStatus("idle");
+    }, []);
+
+    // 손전등 토글
+    const handleTorchToggle = useCallback(async () => {
+        if (!scannerRef.current) return;
+        const next = !torchRef.current;
+        try {
+            // html5-qrcode applyVideoConstraints로 torch 제어
+            await (scannerRef.current as any).applyVideoConstraints({ advanced: [{ torch: next }] });
+            torchRef.current = next;
+            setTorchOn(next);
+        } catch {
+            // torch 미지원 기기는 무시
         }
     }, []);
 
     useEffect(() => {
         if (status === "scanning") {
             scanReadyRef.current = false;
-            const html5QrCode = new Html5Qrcode("reader");
+            processingRef.current = false;
+            const html5QrCode = new Html5Qrcode("reader", {
+                experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+                verbose: false,
+            });
             scannerRef.current = html5QrCode;
+
+            // qrbox를 화면 너비 기준 비율로 크게 잡아 인식 범위 확대
+            const qrboxSize = Math.min(
+                Math.floor(window.innerWidth * 0.75),
+                300
+            );
 
             html5QrCode.start(
                 { facingMode: "environment" },
-                { fps: 10, qrbox: { width: 250, height: 250 } },
+                {
+                    fps: 20,
+                    qrbox: { width: qrboxSize, height: qrboxSize },
+                    aspectRatio: 1.0,
+                    disableFlip: false,
+                },
                 onScanSuccess,
                 onScanFailure
             ).then(() => {
@@ -145,7 +236,7 @@ export default function ScanPage() {
 
                 {/* Scanner Area */}
                 <div className="flex-1 flex flex-col items-center justify-center p-6 gap-8">
-                    {status === "idle" && (
+                    {status === "idle" && !showCheckoutConfirm && (
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -160,6 +251,12 @@ export default function ScanPage() {
                             </div>
                             <div className="text-center">
                                 <h3 className="text-xl font-bold mb-2">책상의 QR 코드를 보여주세요</h3>
+                                {currentStatus === "school" && (
+                                    <p className="text-sm text-slate-400">현재 등교 중입니다. QR을 찍으면 하교 처리됩니다.</p>
+                                )}
+                                {currentStatus === "home" && (
+                                    <p className="text-sm text-slate-400">이미 하교 처리가 완료되었습니다.</p>
+                                )}
                             </div>
                             <button
                                 onClick={() => setStatus("scanning")}
@@ -170,10 +267,51 @@ export default function ScanPage() {
                         </motion.div>
                     )}
 
+                    {/* 하교 확인 다이얼로그 */}
+                    {showCheckoutConfirm && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="flex flex-col items-center gap-6 text-center"
+                        >
+                            <div className="w-24 h-24 bg-orange-500 rounded-full flex items-center justify-center shadow-lg shadow-orange-500/20 text-4xl">
+                                🏠
+                            </div>
+                            <div>
+                                <h3 className="text-2xl font-bold text-white">하교 처리</h3>
+                                <p className="text-slate-300 mt-2">하교 처리를 하시겠습니까?</p>
+                            </div>
+                            <div className="flex flex-col gap-3 w-full max-w-xs">
+                                <button
+                                    onClick={handleCheckoutConfirm}
+                                    className="btn-primary w-full"
+                                >
+                                    확인
+                                </button>
+                                <button
+                                    onClick={handleCheckoutCancel}
+                                    className="w-full py-3 text-sm text-slate-400 font-medium hover:text-white transition-colors"
+                                >
+                                    취소
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
+
                     {status === "scanning" && (
-                        <div className="w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl relative">
-                            <div id="reader"></div>
-                            <div className="absolute inset-0 pointer-events-none border-[40px] border-black/40"></div>
+                        <div className="flex flex-col items-center gap-4 w-full max-w-sm">
+                            <div className="w-full rounded-3xl overflow-hidden shadow-2xl relative">
+                                <div id="reader"></div>
+                                <div className="absolute inset-0 pointer-events-none border-[40px] border-black/40"></div>
+                            </div>
+                            <p className="text-xs text-slate-400 text-center">QR 코드를 네모 안에 맞춰주세요<br/>어두운 환경에서는 손전등을 켜세요</p>
+                            <button
+                                onClick={handleTorchToggle}
+                                className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all ${torchOn ? "bg-yellow-400 text-slate-900" : "bg-white/10 text-white hover:bg-white/20"}`}
+                            >
+                                {torchOn ? <Flashlight size={18} /> : <FlashlightOff size={18} />}
+                                {torchOn ? "손전등 끄기" : "손전등 켜기"}
+                            </button>
                         </div>
                     )}
 
@@ -187,8 +325,8 @@ export default function ScanPage() {
                                 <RefreshCw size={48} className="animate-spin-slow" />
                             </div>
                             <div>
-                                <h3 className="text-2xl font-bold text-green-400">인식 성공!</h3>
-                                <p className="text-slate-300 mt-2">정상적으로 {currentStatus === "school" ? "하교" : "등교"} 처리가 완료되었습니다.</p>
+                                <h3 className="text-2xl font-bold text-green-400">정상 처리 완료!</h3>
+                                <p className="text-slate-300 mt-2">{processedType} 처리가 완료되었습니다.</p>
                                 <div className="mt-6 p-4 bg-white/5 rounded-2xl border border-white/10 uppercase font-mono tracking-widest">
                                     {scanResult}
                                 </div>
