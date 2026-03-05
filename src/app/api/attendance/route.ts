@@ -22,6 +22,21 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'GAS URL not configured' }, { status: 500 });
         }
 
+        // studentName이 없으면 GAS에서 학생 목록 조회하여 이름 확인
+        let studentName = body.studentName as string | undefined;
+        if (!studentName && studentId) {
+            try {
+                const studentsRes = await fetch(`${gasUrl}?action=getStudents`, { cache: 'no-store' });
+                if (studentsRes.ok) {
+                    const students = await studentsRes.json() as { id: string; name: string }[];
+                    const found = students.find((s) => s.id.toString().trim() === studentId.toString().trim());
+                    if (found) studentName = found.name;
+                }
+            } catch {
+                // 조회 실패 시 무시
+            }
+        }
+
         const reportId = crypto.randomUUID();
 
         const res = await fetch(gasUrl, {
@@ -31,7 +46,7 @@ export async function POST(request: Request) {
             body: JSON.stringify({
                 reportId,
                 studentId: body.studentId,
-                name: body.studentName || '알 수 없음',
+                name: studentName || '알 수 없음',
                 type: finalType,
                 status: 'CONFIRMED',
                 reason: 'QR 스캔'
