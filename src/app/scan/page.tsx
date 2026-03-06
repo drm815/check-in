@@ -157,11 +157,12 @@ export default function ScanPage() {
 
         html5QrCode.start(
             { facingMode: "environment" },
-            { fps: 20, qrbox: { width: qrboxSize, height: qrboxSize }, aspectRatio: 1.0, disableFlip: false },
+            { fps: 10, qrbox: { width: qrboxSize, height: qrboxSize }, aspectRatio: 1.0, disableFlip: false },
             handleScanResult,
             () => {}
         ).then(() => {
-            setTimeout(() => { scanReadyRef.current = true; }, 1500);
+            // 카메라 켜지고 3초 후부터 인식 활성화 (너무 빠른 스캔 방지)
+            setTimeout(() => { scanReadyRef.current = true; }, 3000);
         }).catch(err => {
             console.error("Scanner start error", err);
             setPageStatus("idle");

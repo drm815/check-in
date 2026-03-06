@@ -135,8 +135,19 @@ export default function Home() {
     };
     fetchData();
 
+    // 스캔 페이지에서 돌아올 때 상태 갱신 (Next.js 클라이언트 라우팅은 리마운트 안 함)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchData();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [router]);
 
   const timeString = currentTime.toLocaleTimeString('ko-KR', {
