@@ -178,7 +178,7 @@ function doPost(e) {
         if (colMap.targetDate) sheet.getRange(nextRow, colMap.targetDate).setValue(tDate);
 
         if (data.status === "PENDING" && data.parentEmail) {
-            sendParentNotification(data.parentEmail, data.name, data.type, data.reportId);
+            sendParentNotification(data.parentEmail, data.name, data.type, data.reportId, data.appUrl);
         }
 
         return jsonResponse({ result: "success" });
@@ -443,8 +443,9 @@ function getTopics() {
     return jsonResponse(data);
 }
 
-function sendParentNotification(parentEmail, studentName, reason, reportId) {
-    var appUrl = "https://check-in-ten-xi.vercel.app";
+function sendParentNotification(parentEmail, studentName, reason, reportId, appUrl) {
+    // appUrl이 전달되지 않은 경우 기본값 사용
+    if (!appUrl) appUrl = "https://check-in-ten-xi.vercel.app";
     var verifyUrl = appUrl + "/verify/" + reportId;
     var subject = "[Class-Mates] " + studentName + " 학생의 출결 신고 확인 요청";
 

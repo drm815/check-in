@@ -6,6 +6,9 @@ export async function POST(request: Request) {
         const { studentName, type, reason, parentEmail, reportId, studentId, targetDate } = body;
 
         const gasUrl = process.env.GOOGLE_SHEET_WEB_APP_URL;
+        // 환경변수에 앱 URL이 있으면 사용, 없으면 요청 헤더에서 추출
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL ||
+            (request.headers.get('origin') ?? request.headers.get('referer')?.replace(/\/[^/]*$/, '') ?? '');
         if (gasUrl) {
             const res = await fetch(gasUrl, {
                 method: 'POST',
@@ -19,7 +22,8 @@ export async function POST(request: Request) {
                     status: 'PENDING',
                     reason,
                     parentEmail,
-                    targetDate
+                    targetDate,
+                    appUrl,
                 }),
             });
             if (!res.ok) {
