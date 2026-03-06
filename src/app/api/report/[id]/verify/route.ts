@@ -1,16 +1,10 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { verifyAuth } from '@/lib/auth';
 
 export async function POST(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        const token = (await cookies()).get("admin_token")?.value;
-        if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-        await verifyAuth(token);
-
         const { id } = await params;
         const body = await request.json();
         const { status } = body;
