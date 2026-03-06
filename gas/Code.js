@@ -445,7 +445,7 @@ function getTopics() {
 
 function sendParentNotification(parentEmail, studentName, reason, reportId, appUrl) {
     // appUrl이 전달되지 않은 경우 기본값 사용
-    if (!appUrl) appUrl = "https://check-in-ten-xi.vercel.app";
+    if (!appUrl) appUrl = "https://check-in-2026.vercel.app";
     var verifyUrl = appUrl + "/verify/" + reportId;
     var subject = "[Class-Mates] " + studentName + " 학생의 출결 신고 확인 요청";
 
