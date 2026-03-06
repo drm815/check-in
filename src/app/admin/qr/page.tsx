@@ -59,9 +59,9 @@ function FlowerQR({ studentId, color }: { studentId: string; color: string }) {
             data: studentId,
             margin: 3,
             qrOptions: { errorCorrectionLevel: "H" },
-            dotsOptions:         { type: "square", color },
-            cornersSquareOptions: { type: "square", color },
-            cornersDotOptions:    { type: "square", color },
+            dotsOptions:         { type: "square", color: "#000000" },
+            cornersSquareOptions: { type: "square", color: "#000000" },
+            cornersDotOptions:    { type: "square", color: "#000000" },
             backgroundOptions:    { color: "#ffffff" },
         });
         qr.append(ref.current);
@@ -259,7 +259,7 @@ export default function QRPrintPage() {
                             <span className="text-4xl leading-none">🚪</span>
                             <span className="text-base font-black" style={{ color: "#3B82F6" }}>공용 하교 QR</span>
                         </div>
-                        <FlowerQR studentId="CLASS_MATES_HOME_QR" color="#3B82F6" />
+                        <FlowerQR studentId="CLASS_MATES_HOME_QR" color="#000000" />
                         <p className="text-[9px] text-gray-400 text-center font-bold">이 QR을 찍으면 누구든 하교 처리됩니다</p>
                     </div>}
 
@@ -272,7 +272,7 @@ export default function QRPrintPage() {
                                     <span className="text-5xl leading-none">🚪</span>
                                     <span className="text-lg font-black tracking-tight" style={{ color: "#3B82F6" }}>공용 하교 QR</span>
                                 </div>
-                                <FlowerQR studentId="CLASS_MATES_HOME_QR" color="#3B82F6" />
+                                <FlowerQR studentId="CLASS_MATES_HOME_QR" color="#000000" />
                                 <p className="text-[10px] text-gray-400 text-center font-bold">이 QR을 찍으면 누구든 하교 처리됩니다</p>
                             </div>
                         </div>
@@ -295,7 +295,7 @@ export default function QRPrintPage() {
                                             {flower.name}
                                         </span>
                                     </div>
-                                    <FlowerQR studentId={student.id} color={flower.color} />
+                                    <FlowerQR studentId={student.id} color="#000000" />
                                     <p className="text-lg font-black tracking-tight" style={{ color: flower.color }}>
                                         {student.name}
                                     </p>
