@@ -22,11 +22,11 @@ import LogoutButton from "@/components/LogoutButton";
 import Chatbot from "@/components/Chatbot";
 
 export default function Home() {
-  // sessionStorage에서 오늘 스캔 결과 즉시 읽어 초기값 설정
+  // localStorage에서 오늘 스캔 결과 즉시 읽어 초기값 설정 (로그아웃 후에도 유지)
   const [status, setStatus] = useState<"away" | "school" | "home">(() => {
     if (typeof window === "undefined") return "away";
-    const lastType = sessionStorage.getItem("last_attendance_type");
-    const lastTime = sessionStorage.getItem("last_attendance_time");
+    const lastType = localStorage.getItem("last_attendance_type");
+    const lastTime = localStorage.getItem("last_attendance_time");
     if (!lastType || !lastTime) return "away";
     const today = new Date().toISOString().split('T')[0];
     const isToday = new Date(lastTime).toISOString().split('T')[0] === today;
@@ -35,8 +35,8 @@ export default function Home() {
   });
   const [scanTime, setScanTime] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
-    const lastTime = sessionStorage.getItem("last_attendance_time");
-    const lastType = sessionStorage.getItem("last_attendance_type");
+    const lastTime = localStorage.getItem("last_attendance_time");
+    const lastType = localStorage.getItem("last_attendance_type");
     if (!lastTime || !lastType) return null;
     const today = new Date().toISOString().split('T')[0];
     if (new Date(lastTime).toISOString().split('T')[0] !== today) return null;
@@ -53,7 +53,7 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch('/api/admin/settings?key=chatbotEnabled')
+    fetch('/api/settings?key=chatbotEnabled')
       .then(r => r.json())
       .then(d => {
         // null = 설정한 적 없음 → 기본값 true, 'false' = 관리자가 꺼놓음
@@ -105,10 +105,10 @@ export default function Home() {
             return rDate === today && (type === "등교" || type === "하교");
           });
 
-          // sessionStorage에 최근 스캔 결과가 있으면 GAS보다 우선 적용
+          // localStorage에 최근 스캔 결과가 있으면 GAS보다 우선 적용
           // (GAS 캐싱으로 인해 방금 찍은 출결이 아직 반영 안 된 경우 대비)
-          const lastType = sessionStorage.getItem("last_attendance_type");
-          const lastTime = sessionStorage.getItem("last_attendance_time");
+          const lastType = localStorage.getItem("last_attendance_type");
+          const lastTime = localStorage.getItem("last_attendance_time");
           const lastTimeDate = lastTime ? new Date(lastTime).toISOString().split('T')[0] : null;
           const isLastTimeToday = lastTimeDate === today;
 

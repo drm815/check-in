@@ -37,9 +37,9 @@ export default function ScanPage() {
         const studentId = sessionStorage.getItem("student_id");
         if (!studentId) return;
 
-        // sessionStorage에 오늘 스캔 결과가 있으면 즉시 적용
-        const lastType = sessionStorage.getItem("last_attendance_type");
-        const lastTime = sessionStorage.getItem("last_attendance_time");
+        // localStorage에 오늘 스캔 결과가 있으면 즉시 적용 (로그아웃 후에도 유지)
+        const lastType = localStorage.getItem("last_attendance_type");
+        const lastTime = localStorage.getItem("last_attendance_time");
         const today = new Date().toISOString().split('T')[0];
         if (lastType && lastTime && new Date(lastTime).toISOString().split('T')[0] === today) {
             updateCurrentStatus(lastType === "하교" ? "home" : "school");
@@ -60,7 +60,7 @@ export default function ScanPage() {
             );
             const gasType = (studentRecords[0].type || studentRecords[0]["유형"] || "").toString().trim();
             const gasTime = new Date(studentRecords[0].timestamp || studentRecords[0]["시각"]);
-            // sessionStorage보다 GAS가 더 최신이면 GAS 값 사용
+            // localStorage보다 GAS가 더 최신이면 GAS 값 사용
             const lastTimestamp = lastTime ? new Date(lastTime) : new Date(0);
             if (gasTime >= lastTimestamp) {
                 updateCurrentStatus(gasType === "하교" ? "home" : gasType === "등교" ? "school" : "away");
@@ -85,9 +85,9 @@ export default function ScanPage() {
                 // 상태 즉시 업데이트
                 const newStatus = scanType === "하교" ? "home" : "school";
                 updateCurrentStatus(newStatus);
-                // sessionStorage에도 저장 (홈 화면 캐시 우회용)
-                sessionStorage.setItem("last_attendance_type", scanType);
-                sessionStorage.setItem("last_attendance_time", new Date().toISOString());
+                // localStorage에 저장 (로그아웃 후에도 오늘 출결 상태 유지)
+                localStorage.setItem("last_attendance_type", scanType);
+                localStorage.setItem("last_attendance_time", new Date().toISOString());
                 setProcessedType(scanType);
                 setScanResult(decodedText);
                 setPageStatus("success");
@@ -239,11 +239,15 @@ export default function ScanPage() {
                                 {currentStatus === "school" && (
                                     <p className="text-sm text-slate-400">현재 등교 중입니다. QR을 찍으면 하교 처리됩니다.</p>
                                 )}
-                                {currentStatus === "home" && (
-                                    <p className="text-sm text-slate-400">이미 하교 처리가 완료되었습니다.</p>
+                                    {currentStatus === "home" && (
+                                    <p className="text-sm text-red-400 font-semibold">오늘 하교 처리가 완료되었습니다.<br />내일 다시 이용해 주세요.</p>
                                 )}
                             </div>
-                            <button onClick={() => setPageStatus("scanning")} className="btn-primary w-full max-w-xs mt-4">
+                            <button
+                                onClick={() => setPageStatus("scanning")}
+                                disabled={currentStatus === "home"}
+                                className="btn-primary w-full max-w-xs mt-4 disabled:opacity-40 disabled:cursor-not-allowed"
+                            >
                                 스캔 시작하기
                             </button>
                         </motion.div>

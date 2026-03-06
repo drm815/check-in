@@ -8,6 +8,7 @@ export default function LogoutButton({ className = "" }: { className?: string })
 
     const handleLogout = () => {
         sessionStorage.clear();
+        // localStorage의 출결 기록은 로그아웃 후 재로그인 시에도 오늘 상태를 복원할 수 있도록 유지
         router.push("/login");
     };
 
