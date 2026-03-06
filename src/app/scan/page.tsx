@@ -14,7 +14,7 @@ export default function ScanPage() {
     const currentStatusRef = useRef<"away" | "school" | "home">("away");
     const scannerRef = useRef<Html5Qrcode | null>(null);
     const scanReadyRef = useRef<boolean>(false);
-    // 스캔 처리 중 플래그 (이중 스캔 방지)
+    // 이중 스캔 방지 — 스캐너 생명주기 전체에서 유지
     const processingRef = useRef<boolean>(false);
     // 스캔 완료 후 실제로 처리된 type 저장
     const [processedType, setProcessedType] = useState<"등교" | "하교" | null>(null);
@@ -24,6 +24,8 @@ export default function ScanPage() {
     // 손전등
     const [torchOn, setTorchOn] = useState(false);
     const torchRef = useRef<boolean>(false);
+    // onScanSuccess를 ref로 관리 → useEffect 의존성에서 제외해 스캐너 재시작 방지
+    const onScanSuccessRef = useRef<((text: string) => void) | null>(null);
 
     useEffect(() => {
         const fetchCurrentStatus = async () => {
@@ -61,11 +63,7 @@ export default function ScanPage() {
         fetchCurrentStatus();
     }, []);
 
-    const onScanFailure = useCallback(() => {
-        // 매 프레임 QR 미감지 시 조용히 무시
-    }, []);
-
-    // 실제 출결 API 호출 함수
+    // 실제 출결 API 호출
     const submitAttendance = useCallback(async (decodedText: string, scanType: "등교" | "하교") => {
         const studentId = sessionStorage.getItem("student_id");
         const studentName = sessionStorage.getItem("student_name");
@@ -74,21 +72,19 @@ export default function ScanPage() {
             const response = await fetch("/api/attendance", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    studentId,
-                    studentName,
-                    scannedId: decodedText,
-                    type: scanType
-                }),
+                body: JSON.stringify({ studentId, studentName, scannedId: decodedText, type: scanType }),
             });
 
             const result = await response.json();
 
             if (response.ok) {
-                // 성공 시 상태 업데이트
                 const newStatus = scanType === "하교" ? "home" : "school";
                 setCurrentStatus(newStatus);
                 currentStatusRef.current = newStatus;
+                // 홈 페이지가 GAS 캐시로 인해 상태를 못 받아올 경우를 대비해 저장
+                const now = new Date().toISOString();
+                sessionStorage.setItem("last_attendance_type", scanType);
+                sessionStorage.setItem("last_attendance_time", now);
                 setProcessedType(scanType);
                 setScanResult(decodedText);
                 setStatus("success");
@@ -105,46 +101,42 @@ export default function ScanPage() {
         }
     }, []);
 
-    const onScanSuccess = useCallback(async (decodedText: string) => {
-        // 카메라 시작 직후 잔상 QR 인식 방지 (1.5초 딜레이)
-        if (!scanReadyRef.current) return;
-        // 처리 중이면 무시 (이중 스캔 방지)
-        if (processingRef.current) return;
+    // onScanSuccess 최신 버전을 ref에 저장 (스캐너는 재시작하지 않음)
+    useEffect(() => {
+        onScanSuccessRef.current = async (decodedText: string) => {
+            if (!scanReadyRef.current) return;
+            if (processingRef.current) return;
 
-        processingRef.current = true;
+            processingRef.current = true;
 
-        // 스캐너 먼저 정지 (이중 스캔 방지)
-        if (scannerRef.current && scannerRef.current.isScanning) {
-            try { await scannerRef.current.stop(); } catch { /* ignore */ }
-        }
+            // 스캐너 정지
+            if (scannerRef.current && scannerRef.current.isScanning) {
+                try { await scannerRef.current.stop(); } catch { /* ignore */ }
+            }
 
-        const isHomeQR = decodedText === "CLASS_MATES_HOME_QR";
-        const currentSt = currentStatusRef.current;
+            const isHomeQR = decodedText === "CLASS_MATES_HOME_QR";
+            const currentSt = currentStatusRef.current;
 
-        if (isHomeQR) {
-            // 공용 하교 QR: 항상 하교 처리
-            await submitAttendance(decodedText, "하교");
-            return;
-        }
+            if (isHomeQR) {
+                await submitAttendance(decodedText, "하교");
+                return;
+            }
 
-        // 개인 QR: 등교 상태면 → 하교 확인 다이얼로그, 미등교면 → 등교 처리
-        if (currentSt === "school") {
-            // 이미 등교 중 → 하교 확인 필요
-            pendingScannedIdRef.current = decodedText;
-            setShowCheckoutConfirm(true);
-            processingRef.current = false;
-        } else if (currentSt === "home") {
-            // 이미 하교 완료 → 안내
-            alert("이미 하교 처리가 완료되었습니다.");
-            setStatus("idle");
-            processingRef.current = false;
-        } else {
-            // 미등교 → 등교 처리
-            await submitAttendance(decodedText, "등교");
-        }
-    }, [submitAttendance]);
+            if (currentSt === "school") {
+                pendingScannedIdRef.current = decodedText;
+                setShowCheckoutConfirm(true);
+                processingRef.current = false;
+            } else if (currentSt === "home") {
+                alert("이미 하교 처리가 완료되었습니다.");
+                setStatus("idle");
+                processingRef.current = false;
+            } else {
+                await submitAttendance(decodedText, "등교");
+            }
+        };
+    }, [submitAttendance, currentStatus]);
 
-    // 하교 확인 모달에서 확인 버튼
+    // 하교 확인 모달 확인
     const handleCheckoutConfirm = useCallback(async () => {
         setShowCheckoutConfirm(false);
         const scannedId = pendingScannedIdRef.current;
@@ -153,7 +145,7 @@ export default function ScanPage() {
         await submitAttendance(scannedId, "하교");
     }, [submitAttendance]);
 
-    // 하교 확인 모달에서 취소 버튼
+    // 하교 확인 모달 취소
     const handleCheckoutCancel = useCallback(() => {
         setShowCheckoutConfirm(false);
         pendingScannedIdRef.current = null;
@@ -165,62 +157,60 @@ export default function ScanPage() {
         if (!scannerRef.current) return;
         const next = !torchRef.current;
         try {
-            // html5-qrcode applyVideoConstraints로 torch 제어
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             await (scannerRef.current as any).applyVideoConstraints({ advanced: [{ torch: next }] });
             torchRef.current = next;
             setTorchOn(next);
         } catch {
-            // torch 미지원 기기는 무시
+            // torch 미지원 기기 무시
         }
     }, []);
 
+    // 스캐너 시작/정지 — status === "scanning" 일 때만, 의존성 최소화
     useEffect(() => {
-        if (status === "scanning") {
-            scanReadyRef.current = false;
-            processingRef.current = false;
-            const html5QrCode = new Html5Qrcode("reader", {
-                experimentalFeatures: { useBarCodeDetectorIfSupported: true },
-                verbose: false,
-            });
-            scannerRef.current = html5QrCode;
+        if (status !== "scanning") return;
 
-            // qrbox를 화면 너비 기준 비율로 크게 잡아 인식 범위 확대
-            const qrboxSize = Math.min(
-                Math.floor(window.innerWidth * 0.75),
-                300
-            );
+        scanReadyRef.current = false;
+        processingRef.current = false;
+        torchRef.current = false;
+        setTorchOn(false);
 
-            html5QrCode.start(
-                { facingMode: "environment" },
-                {
-                    fps: 20,
-                    qrbox: { width: qrboxSize, height: qrboxSize },
-                    aspectRatio: 1.0,
-                    disableFlip: false,
-                },
-                onScanSuccess,
-                onScanFailure
-            ).then(() => {
-                // 카메라 시작 후 1.5초 뒤부터 QR 인식 활성화
-                setTimeout(() => { scanReadyRef.current = true; }, 1500);
-            }).catch(err => {
-                console.error("Scanner start error", err);
-                setStatus("idle");
-                alert("카메라를 시작할 수 없습니다. 권한을 확인해 주세요.");
-            });
-        }
+        const html5QrCode = new Html5Qrcode("reader", {
+            experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+            verbose: false,
+        });
+        scannerRef.current = html5QrCode;
+
+        const qrboxSize = Math.min(Math.floor(window.innerWidth * 0.75), 300);
+
+        // 스태틱 래퍼로 ref를 통해 항상 최신 핸들러 호출 → 스캐너 재시작 없음
+        const stableHandler = (decodedText: string) => {
+            onScanSuccessRef.current?.(decodedText);
+        };
+
+        html5QrCode.start(
+            { facingMode: "environment" },
+            { fps: 20, qrbox: { width: qrboxSize, height: qrboxSize }, aspectRatio: 1.0, disableFlip: false },
+            stableHandler,
+            () => { /* 미인식 프레임 무시 */ }
+        ).then(() => {
+            setTimeout(() => { scanReadyRef.current = true; }, 1500);
+        }).catch(err => {
+            console.error("Scanner start error", err);
+            setStatus("idle");
+            alert("카메라를 시작할 수 없습니다. 권한을 확인해 주세요.");
+        });
 
         return () => {
-            if (scannerRef.current && scannerRef.current.isScanning) {
-                scannerRef.current.stop().catch(err => console.error("Failed to stop scanner", err));
+            if (html5QrCode.isScanning) {
+                html5QrCode.stop().catch(() => { /* ignore */ });
             }
         };
-    }, [status, onScanSuccess, onScanFailure]);
+    }, [status]); // status만 의존 → 콜백 변경으로 인한 재시작 없음
 
     return (
         <main className="min-h-screen flex flex-col items-center bg-slate-900 text-white pt-[10px] overflow-y-auto">
             <div className="w-[90%] max-w-[400px] flex flex-col pb-12 gap-[30px]">
-                {/* Top Spacer */}
                 <div className="h-[5px] shrink-0" />
 
                 {/* Header */}
@@ -282,18 +272,8 @@ export default function ScanPage() {
                                 <p className="text-slate-300 mt-2">하교 처리를 하시겠습니까?</p>
                             </div>
                             <div className="flex flex-col gap-3 w-full max-w-xs">
-                                <button
-                                    onClick={handleCheckoutConfirm}
-                                    className="btn-primary w-full"
-                                >
-                                    확인
-                                </button>
-                                <button
-                                    onClick={handleCheckoutCancel}
-                                    className="w-full py-3 text-sm text-slate-400 font-medium hover:text-white transition-colors"
-                                >
-                                    취소
-                                </button>
+                                <button onClick={handleCheckoutConfirm} className="btn-primary w-full">확인</button>
+                                <button onClick={handleCheckoutCancel} className="w-full py-3 text-sm text-slate-400 font-medium hover:text-white transition-colors">취소</button>
                             </div>
                         </motion.div>
                     )}
@@ -304,7 +284,7 @@ export default function ScanPage() {
                                 <div id="reader"></div>
                                 <div className="absolute inset-0 pointer-events-none border-[40px] border-black/40"></div>
                             </div>
-                            <p className="text-xs text-slate-400 text-center">QR 코드를 네모 안에 맞춰주세요<br/>어두운 환경에서는 손전등을 켜세요</p>
+                            <p className="text-xs text-slate-400 text-center">QR 코드를 네모 안에 맞춰주세요<br />어두운 환경에서는 손전등을 켜세요</p>
                             <button
                                 onClick={handleTorchToggle}
                                 className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-semibold transition-all ${torchOn ? "bg-yellow-400 text-slate-900" : "bg-white/10 text-white hover:bg-white/20"}`}

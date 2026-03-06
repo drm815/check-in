@@ -86,23 +86,42 @@ export default function Home() {
             return rDate === today && (type === "등교" || type === "하교");
           });
 
+          // sessionStorage에 최근 스캔 결과가 있으면 GAS보다 우선 적용
+          // (GAS 캐싱으로 인해 방금 찍은 출결이 아직 반영 안 된 경우 대비)
+          const lastType = sessionStorage.getItem("last_attendance_type");
+          const lastTime = sessionStorage.getItem("last_attendance_time");
+          const lastTimeDate = lastTime ? new Date(lastTime).toISOString().split('T')[0] : null;
+          const isLastTimeToday = lastTimeDate === today;
+
           if (todayRecords.length > 0) {
             const latest = todayRecords[0];
-            const type = (latest.type || latest["유형"] || "").toString().trim();
+            const gasType = (latest.type || latest["유형"] || "").toString().trim();
+            const gasTime = new Date(latest.timestamp || latest["시각"]);
 
-            if (type === "하교") {
+            // sessionStorage 값이 오늘 것이고 GAS 최신 기록보다 더 최근이면 우선 사용
+            let finalType = gasType;
+            let finalTime = gasTime;
+            if (isLastTimeToday && lastType && lastTime) {
+              const lastTimestamp = new Date(lastTime);
+              if (lastTimestamp > gasTime) {
+                finalType = lastType;
+                finalTime = lastTimestamp;
+              }
+            }
+
+            if (finalType === "하교") {
               setStatus("home");
-            } else if (type === "등교") {
+            } else if (finalType === "등교") {
               setStatus("school");
             } else {
               setStatus("away");
             }
 
-            const time = new Date(latest.timestamp || latest["시각"]).toLocaleTimeString('ko-KR', {
-              hour: '2-digit',
-              minute: '2-digit'
-            });
-            setScanTime(time);
+            setScanTime(finalTime.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }));
+          } else if (isLastTimeToday && lastType) {
+            // GAS에 아직 없지만 오늘 스캔한 기록이 sessionStorage에 있음
+            setStatus(lastType === "하교" ? "home" : "school");
+            setScanTime(new Date(lastTime!).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }));
           } else {
             setStatus("away");
             setScanTime(null);

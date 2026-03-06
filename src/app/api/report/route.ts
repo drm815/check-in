@@ -7,8 +7,9 @@ export async function POST(request: Request) {
 
         const gasUrl = process.env.GOOGLE_SHEET_WEB_APP_URL;
         if (gasUrl) {
-            await fetch(gasUrl, {
+            const res = await fetch(gasUrl, {
                 method: 'POST',
+                redirect: 'follow',
                 headers: { 'Content-Type': 'text/plain' },
                 body: JSON.stringify({
                     reportId,
@@ -21,6 +22,10 @@ export async function POST(request: Request) {
                     targetDate
                 }),
             });
+            if (!res.ok) {
+                console.error('GAS report error:', res.status);
+                return NextResponse.json({ success: false, error: 'GAS 요청 실패' }, { status: 502 });
+            }
         }
 
         return NextResponse.json({ success: true });
