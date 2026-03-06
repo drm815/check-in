@@ -19,6 +19,7 @@ export async function POST(request: Request) {
 
     const res = await fetch(gasUrl(), {
         method: 'POST',
+        redirect: 'follow',
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({ action: 'saveSetting', key, value }),
     });

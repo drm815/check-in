@@ -43,7 +43,8 @@ export default function Home() {
     return new Date(lastTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
   });
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [chatbotEnabled, setChatbotEnabled] = useState(false);
+  // null = 로딩 중 (설정 확인 전까지 챗봇 숨김)
+  const [chatbotEnabled, setChatbotEnabled] = useState<boolean | null>(null);
   const [studentName, setStudentName] = useState(() =>
     typeof window !== "undefined" ? sessionStorage.getItem("student_name") || "" : ""
   );
