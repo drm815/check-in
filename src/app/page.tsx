@@ -22,8 +22,26 @@ import LogoutButton from "@/components/LogoutButton";
 import Chatbot from "@/components/Chatbot";
 
 export default function Home() {
-  const [status, setStatus] = useState<"away" | "school" | "home">("away");
-  const [scanTime, setScanTime] = useState<string | null>(null);
+  // sessionStorage에서 오늘 스캔 결과 즉시 읽어 초기값 설정
+  const [status, setStatus] = useState<"away" | "school" | "home">(() => {
+    if (typeof window === "undefined") return "away";
+    const lastType = sessionStorage.getItem("last_attendance_type");
+    const lastTime = sessionStorage.getItem("last_attendance_time");
+    if (!lastType || !lastTime) return "away";
+    const today = new Date().toISOString().split('T')[0];
+    const isToday = new Date(lastTime).toISOString().split('T')[0] === today;
+    if (!isToday) return "away";
+    return lastType === "하교" ? "home" : "school";
+  });
+  const [scanTime, setScanTime] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    const lastTime = sessionStorage.getItem("last_attendance_time");
+    const lastType = sessionStorage.getItem("last_attendance_type");
+    if (!lastTime || !lastType) return null;
+    const today = new Date().toISOString().split('T')[0];
+    if (new Date(lastTime).toISOString().split('T')[0] !== today) return null;
+    return new Date(lastTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+  });
   const [currentTime, setCurrentTime] = useState(new Date());
   const [chatbotEnabled, setChatbotEnabled] = useState(false);
   const [studentName, setStudentName] = useState(() =>
