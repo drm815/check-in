@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
     LayoutDashboard,
     RefreshCw,
@@ -162,25 +162,19 @@ export default function AdminDashboard() {
         if (!confirm(`${selectedMissingStudents.length}명의 학생을 일괄 등교 처리하시겠습니까?`)) return;
 
         setLoading(true);
-        let successCount = 0;
-        let failCount = 0;
 
-        for (const id of selectedMissingStudents) {
-            const student = students.find(s => s.id.toString() === id.toString());
-            if (!student) continue;
-
-            try {
-                const res = await fetch('/api/admin/manual-checkin', {
+        const results = await Promise.allSettled(
+            selectedMissingStudents
+                .map(id => students.find(s => s.id.toString() === id.toString()))
+                .filter(Boolean)
+                .map(student => fetch('/api/admin/manual-checkin', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ studentId: student.id, name: student.name, targetDate: selectedDate }),
-                });
-                if (res.ok) successCount++;
-                else failCount++;
-            } catch (e) {
-                failCount++;
-            }
-        }
+                    body: JSON.stringify({ studentId: student!.id, name: student!.name, targetDate: selectedDate }),
+                }).then(res => { if (!res.ok) throw new Error('failed'); }))
+        );
+        const successCount = results.filter(r => r.status === 'fulfilled').length;
+        const failCount = results.filter(r => r.status === 'rejected').length;
 
         setLoading(false);
         alert(`처리 완료: 성공 ${successCount}건, 실패 ${failCount}건`);
@@ -232,16 +226,13 @@ export default function AdminDashboard() {
         }
     };
 
-    const filteredRecords = () => {
+    const allFilteredRecords = useMemo(() => {
         let base = records;
 
         // 1. Filter by SELECTED DATE
         base = base.filter(r => {
             const tDate = getVal(r, ["targetdate", "대상날짜", "targetDate"]);
             const timestamp = getVal(r, ["timestamp", "시각"]);
-
-            // Priority: TargetDate > Timestamp
-            // If there is a targetDate (for reports mainly), use it. otherwise timestamp.
             const recordDateStr = tDate ? getDateString(tDate) : getDateString(timestamp);
             return recordDateStr === selectedDate;
         });
@@ -250,8 +241,7 @@ export default function AdminDashboard() {
         if (activeTab === 'reports') {
             base = base.filter(r => {
                 const type = getVal(r, ["type", "유형"]);
-                const isReport = type !== "등교" && type !== "하교";
-                return isReport;
+                return type !== "등교" && type !== "하교";
             });
         } else if (activeTab === 'attendance') {
             base = base.filter(r => {
@@ -268,7 +258,7 @@ export default function AdminDashboard() {
             );
         }
         return base;
-    };
+    }, [records, selectedDate, activeTab, searchQuery]);
 
     const totalStudents = students.length;
 
@@ -303,8 +293,6 @@ export default function AdminDashboard() {
 
         return isReport && isPending && recordDateStr === selectedDate;
     }).length;
-
-    const allFilteredRecords = filteredRecords();
 
     const handleDownloadCSV = () => {
         if (allFilteredRecords.length === 0) {
@@ -353,7 +341,7 @@ export default function AdminDashboard() {
     };
 
     // Calculate Missing Students (No record for selected date)
-    const getMissingStudents = () => {
+    const missingStudentsList = useMemo(() => {
         const recordedIds = new Set(
             records
                 .filter(r => {
@@ -365,8 +353,7 @@ export default function AdminDashboard() {
                 .map(r => getVal(r, ["studentid", "학번", "id"]).toString().trim())
         );
         return students.filter(s => !recordedIds.has(s.id.toString().trim()));
-    };
-    const missingStudentsList = getMissingStudents();
+    }, [records, students, selectedDate]);
     const missingCount = missingStudentsList.length;
 
     const dataSource = activeTab === 'missing' ? missingStudentsList : allFilteredRecords;

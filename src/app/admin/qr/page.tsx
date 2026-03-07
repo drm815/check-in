@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import QRCodeStyling from "qr-code-styling";
 import { Printer, ChevronLeft, CheckSquare, Square } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -51,20 +50,24 @@ function FlowerQR({ studentId, color }: { studentId: string; color: string }) {
 
     useEffect(() => {
         if (!ref.current) return;
-        ref.current.innerHTML = "";
+        const el = ref.current;
+        el.innerHTML = "";
 
-        const qr = new QRCodeStyling({
-            width: 180,
-            height: 180,
-            data: studentId,
-            margin: 3,
-            qrOptions: { errorCorrectionLevel: "H" },
-            dotsOptions:         { type: "square", color: "#000000" },
-            cornersSquareOptions: { type: "square", color: "#000000" },
-            cornersDotOptions:    { type: "square", color: "#000000" },
-            backgroundOptions:    { color: "#ffffff" },
+        import("qr-code-styling").then(({ default: QRCodeStyling }) => {
+            if (!el) return;
+            const qr = new QRCodeStyling({
+                width: 180,
+                height: 180,
+                data: studentId,
+                margin: 3,
+                qrOptions: { errorCorrectionLevel: "H" },
+                dotsOptions:         { type: "square", color: "#000000" },
+                cornersSquareOptions: { type: "square", color: "#000000" },
+                cornersDotOptions:    { type: "square", color: "#000000" },
+                backgroundOptions:    { color: "#ffffff" },
+            });
+            qr.append(el);
         });
-        qr.append(ref.current);
     }, [studentId, color]);
 
     return <div ref={ref} style={{ lineHeight: 0 }} />;

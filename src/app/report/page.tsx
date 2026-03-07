@@ -32,16 +32,9 @@ export default function ReportPage() {
         // Fetch My Reports
         const fetchReports = async () => {
             try {
-                const res = await fetch(`/api/admin/attendance?v=${Date.now()}`);
+                const res = await fetch(`/api/attendance/status?studentId=${encodeURIComponent(id)}`);
                 if (res.ok) {
-                    const allAtt = await res.json();
-
-                    // Filter by Student ID with robust comparison
-                    const myAllRecords = allAtt.filter((r: any) => {
-                        const rId = String(r.studentid || r["학번"] || "").trim();
-                        const currentId = String(id).trim();
-                        return rId === currentId;
-                    });
+                    const myAllRecords = await res.json();
 
                     // Sort by timestamp desc
                     myAllRecords.sort((a: any, b: any) => {

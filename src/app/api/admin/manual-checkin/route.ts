@@ -1,6 +1,17 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { verifyAuth } from '@/lib/auth';
 
 export async function POST(request: Request) {
+    // 관리자 인증 확인
+    const token = (await cookies()).get("admin_token")?.value;
+    if (!token) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    try {
+        await verifyAuth(token);
+    } catch {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     try {
         const body = await request.json();
         const { studentId, name, targetDate } = body;

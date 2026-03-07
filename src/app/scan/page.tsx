@@ -6,6 +6,7 @@ import { ChevronLeft, Camera, RefreshCw, Flashlight, FlashlightOff } from "lucid
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
 import { motion } from "framer-motion";
+import { attendanceStorage } from "@/lib/attendance-storage";
 
 export default function ScanPage() {
     const [scanResult, setScanResult] = useState<string | null>(null);
@@ -37,22 +38,20 @@ export default function ScanPage() {
         const studentId = sessionStorage.getItem("student_id");
         if (!studentId) return;
 
-        // localStorage에 오늘 스캔 결과가 있으면 즉시 적용 (로그아웃 후에도 유지)
-        const lastType = localStorage.getItem("last_attendance_type");
-        const lastTime = localStorage.getItem("last_attendance_time");
+        // attendanceStorage로 오늘 스캔 결과 읽기 (try-catch + 버전 키 내장)
+        const lastType = attendanceStorage.getType();
+        const lastTime = attendanceStorage.getTime();
         const today = new Date().toISOString().split('T')[0];
         if (lastType && lastTime && new Date(lastTime).toISOString().split('T')[0] === today) {
             updateCurrentStatus(lastType === "하교" ? "home" : "school");
         }
 
         // GAS에서도 확인 (더 최신이면 덮어씀)
-        fetch(`/api/admin/attendance?v=${Date.now()}`).then(async (res) => {
+        fetch(`/api/attendance/status?studentId=${encodeURIComponent(studentId)}`).then(async (res) => {
             if (!res.ok) return;
-            const allAtt = await res.json();
-            const studentRecords = (allAtt as Record<string, string>[]).filter((r) => {
-                const rId = (r.studentid || r["학번"] || "").toString().trim();
+            const studentRecords = (await res.json() as Record<string, string>[]).filter((r) => {
                 const rDate = new Date(r.timestamp || r["시각"]).toISOString().split('T')[0];
-                return rId === studentId && rDate === today;
+                return rDate === today;
             });
             if (studentRecords.length === 0) return;
             studentRecords.sort((a, b) =>
@@ -60,7 +59,7 @@ export default function ScanPage() {
             );
             const gasType = (studentRecords[0].type || studentRecords[0]["유형"] || "").toString().trim();
             const gasTime = new Date(studentRecords[0].timestamp || studentRecords[0]["시각"]);
-            // localStorage보다 GAS가 더 최신이면 GAS 값 사용
+            // attendanceStorage보다 GAS가 더 최신이면 GAS 값 사용
             const lastTimestamp = lastTime ? new Date(lastTime) : new Date(0);
             if (gasTime >= lastTimestamp) {
                 updateCurrentStatus(gasType === "하교" ? "home" : gasType === "등교" ? "school" : "away");
@@ -85,9 +84,8 @@ export default function ScanPage() {
                 // 상태 즉시 업데이트
                 const newStatus = scanType === "하교" ? "home" : "school";
                 updateCurrentStatus(newStatus);
-                // localStorage에 저장 (로그아웃 후에도 오늘 출결 상태 유지)
-                localStorage.setItem("last_attendance_type", scanType);
-                localStorage.setItem("last_attendance_time", new Date().toISOString());
+                // attendanceStorage에 저장 (로그아웃 후에도 오늘 출결 상태 유지)
+                attendanceStorage.set(scanType, new Date().toISOString());
                 setProcessedType(scanType);
                 setScanResult(decodedText);
                 setPageStatus("success");
