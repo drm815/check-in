@@ -6,16 +6,18 @@ export async function POST(request: Request) {
         const { studentId, scannedId, type } = body;
 
         const isHomeQR = scannedId === "CLASS_MATES_HOME_QR";
+        const isSchoolQR = scannedId === "CLASS_MATES_SCHOOL_QR";
+        const isSharedQR = isHomeQR || isSchoolQR;
 
-        if (!isHomeQR && studentId !== scannedId) {
+        if (!isSharedQR && studentId !== scannedId) {
             return NextResponse.json({
                 success: false,
                 message: '본인의 책상 QR 코드가 아닙니다. 확인 후 다시 시도해 주세요.'
             }, { status: 400 });
         }
 
-        // 공용 하교 QR은 항상 하교 처리
-        const finalType = isHomeQR ? "하교" : type;
+        // 공용 QR: 하교 QR은 항상 하교, 등교 QR은 항상 등교
+        const finalType = isHomeQR ? "하교" : isSchoolQR ? "등교" : type;
 
         const gasUrl = process.env.GOOGLE_SHEET_WEB_APP_URL;
         if (!gasUrl) {

@@ -79,6 +79,7 @@ export default function QRPrintPage() {
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [printMode, setPrintMode] = useState<"all" | "selected">("all");
     const [printHomeQR, setPrintHomeQR] = useState(false);
+    const [printSchoolQR, setPrintSchoolQR] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
@@ -172,6 +173,22 @@ export default function QRPrintPage() {
                         margin-left: auto !important;
                         margin-right: auto !important;
                     }
+                    .print-school-card {
+                        break-inside: avoid !important;
+                        page-break-inside: avoid !important;
+                        margin-bottom: 6mm !important;
+                        border: 2px solid #16A34A !important;
+                        border-radius: 8px !important;
+                        padding: 4mm !important;
+                        background: white !important;
+                        display: flex !important;
+                        flex-direction: column !important;
+                        align-items: center !important;
+                        gap: 3mm !important;
+                        width: fit-content !important;
+                        margin-left: auto !important;
+                        margin-right: auto !important;
+                    }
                 }
             `}</style>
 
@@ -241,20 +258,36 @@ export default function QRPrintPage() {
                             </div>
                         </div>
                     )}
-                    <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100">
+                    <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-gray-100">
+                        <button
+                            onClick={() => setPrintSchoolQR(v => !v)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border transition-colors ${printSchoolQR ? "bg-green-600 text-white border-green-600" : "bg-white text-gray-500 border-gray-200 hover:border-green-300"}`}
+                        >
+                            🏫 공용 등교 QR 포함
+                        </button>
                         <button
                             onClick={() => setPrintHomeQR(v => !v)}
                             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold border transition-colors ${printHomeQR ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-500 border-gray-200 hover:border-blue-300"}`}
                         >
                             🚪 공용 하교 QR 포함
                         </button>
-                        <span className="text-xs text-gray-400">{printHomeQR ? "인쇄 시 첫 장에 공용 하교 QR이 포함됩니다" : "포함 안 함 (기본값)"}</span>
+                        <span className="text-xs text-gray-400">{(printSchoolQR || printHomeQR) ? "인쇄 시 첫 장에 선택한 공용 QR이 포함됩니다" : "포함 안 함 (기본값)"}</span>
                     </div>
                     <p className="mt-3 text-xs text-gray-400">인쇄 시 A4 용지에 한 줄 2개씩 배치됩니다.</p>
                 </div>
 
                 {/* ── 인쇄 영역 ── */}
                 <div>
+
+                    {/* 공용 등교 QR - 인쇄용 */}
+                    {printSchoolQR && <div className="print-school-card hidden print:flex max-w-xs mx-auto mb-6">
+                        <div className="flex flex-col items-center gap-1 py-2 rounded-xl w-full" style={{ backgroundColor: "#F0FDF4" }}>
+                            <span className="text-4xl leading-none">🏫</span>
+                            <span className="text-base font-black" style={{ color: "#16A34A" }}>공용 등교 QR</span>
+                        </div>
+                        <FlowerQR studentId="CLASS_MATES_SCHOOL_QR" color="#000000" />
+                        <p className="text-[9px] text-gray-400 text-center font-bold">이 QR을 찍으면 누구든 등교 처리됩니다</p>
+                    </div>}
 
                     {/* 공용 하교 QR - 인쇄용 */}
                     {printHomeQR && <div className="print-home-card hidden print:flex max-w-xs mx-auto mb-6">
@@ -266,10 +299,18 @@ export default function QRPrintPage() {
                         <p className="text-[9px] text-gray-400 text-center font-bold">이 QR을 찍으면 누구든 하교 처리됩니다</p>
                     </div>}
 
-                    {/* 공용 하교 QR - 화면용 */}
+                    {/* 공용 QR 화면용 - 등교 + 하교 나란히 */}
                     <div className="no-print max-w-5xl mx-auto mb-8">
-                        <h2 className="text-lg font-bold text-gray-700 mb-4">공용 하교 QR (1장 출력 후 게시)</h2>
-                        <div className="flex justify-center">
+                        <h2 className="text-lg font-bold text-gray-700 mb-4">공용 QR (1장씩 출력 후 게시)</h2>
+                        <div className="flex flex-wrap justify-center gap-6">
+                            <div className="bg-white border-4 p-8 rounded-3xl flex flex-col items-center gap-4" style={{ borderColor: "#16A34A", maxWidth: 280 }}>
+                                <div className="w-full flex flex-col items-center gap-1 py-3 rounded-2xl" style={{ backgroundColor: "#F0FDF4" }}>
+                                    <span className="text-5xl leading-none">🏫</span>
+                                    <span className="text-lg font-black tracking-tight" style={{ color: "#16A34A" }}>공용 등교 QR</span>
+                                </div>
+                                <FlowerQR studentId="CLASS_MATES_SCHOOL_QR" color="#000000" />
+                                <p className="text-[10px] text-gray-400 text-center font-bold">이 QR을 찍으면 누구든 등교 처리됩니다</p>
+                            </div>
                             <div className="bg-white border-4 p-8 rounded-3xl flex flex-col items-center gap-4" style={{ borderColor: "#3B82F6", maxWidth: 280 }}>
                                 <div className="w-full flex flex-col items-center gap-1 py-3 rounded-2xl" style={{ backgroundColor: "#EFF6FF" }}>
                                     <span className="text-5xl leading-none">🚪</span>

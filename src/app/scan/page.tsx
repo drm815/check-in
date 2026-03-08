@@ -114,11 +114,17 @@ export default function ScanPage() {
         }
 
         const isHomeQR = decodedText === "CLASS_MATES_HOME_QR";
+        const isSchoolQR = decodedText === "CLASS_MATES_SCHOOL_QR";
         // ref에서 직접 읽어야 항상 최신값
         const st = currentStatusRef.current;
 
         if (isHomeQR) {
             await submitAttendance(decodedText, "하교");
+            return;
+        }
+
+        if (isSchoolQR) {
+            await submitAttendance(decodedText, "등교");
             return;
         }
 
