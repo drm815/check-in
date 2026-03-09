@@ -117,7 +117,7 @@ export default function QRPrintPage() {
         }
     };
 
-    const printTargets = printMode === "selected" && selected.size > 0
+    const printTargets = printMode === "selected"
         ? students.filter(s => selected.has(s.id))
         : students;
 

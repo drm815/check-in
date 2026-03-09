@@ -24,9 +24,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'GAS URL not configured' }, { status: 500 });
         }
 
-        // studentName이 없으면 GAS에서 학생 목록 조회하여 이름 확인
+        // studentName이 없고 공용 QR이 아닐 때만 GAS에서 이름 조회
         let studentName = body.studentName as string | undefined;
-        if (!studentName && studentId) {
+        if (!studentName && studentId && !isSharedQR) {
             try {
                 const studentsRes = await fetch(`${gasUrl}?action=getStudents`, { cache: 'no-store' });
                 if (studentsRes.ok) {
