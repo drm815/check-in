@@ -6,7 +6,7 @@ import { ChevronLeft, Camera, RefreshCw, Flashlight, FlashlightOff } from "lucid
 import Link from "next/link";
 import LogoutButton from "@/components/LogoutButton";
 import { motion } from "framer-motion";
-import { attendanceStorage } from "@/lib/attendance-storage";
+import { attendanceStorage, toLocalDateString } from "@/lib/attendance-storage";
 
 export default function ScanPage() {
     const [scanResult, setScanResult] = useState<string | null>(null);
@@ -41,8 +41,8 @@ export default function ScanPage() {
         // attendanceStorage로 오늘 스캔 결과 읽기 (try-catch + 버전 키 내장)
         const lastType = attendanceStorage.getType();
         const lastTime = attendanceStorage.getTime();
-        const today = new Date().toISOString().split('T')[0];
-        if (lastType && lastTime && new Date(lastTime).toISOString().split('T')[0] === today) {
+        const today = toLocalDateString(new Date());
+        if (lastType && lastTime && toLocalDateString(new Date(lastTime)) === today) {
             updateCurrentStatus(lastType === "하교" ? "home" : "school");
         }
 
@@ -50,7 +50,7 @@ export default function ScanPage() {
         fetch(`/api/attendance/status?studentId=${encodeURIComponent(studentId)}`).then(async (res) => {
             if (!res.ok) return;
             const studentRecords = (await res.json() as Record<string, string>[]).filter((r) => {
-                const rDate = new Date(r.timestamp || r["시각"]).toISOString().split('T')[0];
+                const rDate = toLocalDateString(new Date(r.timestamp || r["시각"]));
                 return rDate === today;
             });
             if (studentRecords.length === 0) return;

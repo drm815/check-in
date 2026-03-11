@@ -20,7 +20,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import LogoutButton from "@/components/LogoutButton";
-import { attendanceStorage } from "@/lib/attendance-storage";
+import { attendanceStorage, toLocalDateString } from "@/lib/attendance-storage";
 
 const Chatbot = dynamic(() => import("@/components/Chatbot"), { ssr: false, loading: () => null });
 
@@ -31,8 +31,8 @@ export default function Home() {
     const lastType = attendanceStorage.getType();
     const lastTime = attendanceStorage.getTime();
     if (!lastType || !lastTime) return "away";
-    const today = new Date().toISOString().split('T')[0];
-    const isToday = new Date(lastTime).toISOString().split('T')[0] === today;
+    const today = toLocalDateString(new Date());
+    const isToday = toLocalDateString(new Date(lastTime)) === today;
     if (!isToday) return "away";
     return lastType === "하교" ? "home" : "school";
   });
@@ -41,8 +41,8 @@ export default function Home() {
     const lastTime = attendanceStorage.getTime();
     const lastType = attendanceStorage.getType();
     if (!lastTime || !lastType) return null;
-    const today = new Date().toISOString().split('T')[0];
-    if (new Date(lastTime).toISOString().split('T')[0] !== today) return null;
+    const today = toLocalDateString(new Date());
+    if (toLocalDateString(new Date(lastTime)) !== today) return null;
     return new Date(lastTime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
   });
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -87,7 +87,7 @@ export default function Home() {
 
         if (attRes.ok) {
           const myAllRecords = await attRes.json();
-          const today = new Date().toISOString().split('T')[0];
+          const today = toLocalDateString(new Date());
 
           // Sort by timestamp desc (newest first)
           myAllRecords.sort((a: any, b: any) =>
@@ -96,7 +96,7 @@ export default function Home() {
 
           // 2. Main Status Logic (Only considers TODAY's check-in/out)
           const todayRecords = myAllRecords.filter((r: any) => {
-            const rDate = new Date(r.timestamp || r["시각"]).toISOString().split('T')[0];
+            const rDate = toLocalDateString(new Date(r.timestamp || r["시각"]));
             const type = (r.type || r["유형"] || "").toString().trim();
             return rDate === today && (type === "등교" || type === "하교");
           });
@@ -105,7 +105,7 @@ export default function Home() {
           // (GAS 캐싱으로 인해 방금 찍은 출결이 아직 반영 안 된 경우 대비)
           const lastType = attendanceStorage.getType();
           const lastTime = attendanceStorage.getTime();
-          const lastTimeDate = lastTime ? new Date(lastTime).toISOString().split('T')[0] : null;
+          const lastTimeDate = lastTime ? toLocalDateString(new Date(lastTime)) : null;
           const isLastTimeToday = lastTimeDate === today;
 
           if (todayRecords.length > 0) {
